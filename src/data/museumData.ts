@@ -139,6 +139,7 @@ export const ARTIFACTS: ArtifactData[] = [
     position: [-16, 1, -20],
     color: "#e07a5f",
     type: "document",
+    imageUrl: "/assets/images/loi_keu_goi.jpg",
   },
   {
     id: "may-chu-bac-ho",
@@ -192,6 +193,7 @@ export const ARTIFACTS: ArtifactData[] = [
     position: [22, 1, 18],
     color: "#00ccff",
     type: "document",
+    imageUrl: "/assets/images/nghi_quyet_dai_hoi_6.jpeg",
   },
   {
     id: "hien-phap-1992",
@@ -202,6 +204,7 @@ export const ARTIFACTS: ArtifactData[] = [
     position: [26, 1, 12],
     color: "#8d99ae",
     type: "document",
+    imageUrl: "/assets/images/hien_phap_1992.jpg",
   },
   {
     id: "wto-accession",
@@ -222,5 +225,6 @@ export const ARTIFACTS: ArtifactData[] = [
     position: [18, 1, 12],
     color: "#d00000",
     type: "document",
+    imageUrl: "/assets/images/van_kien_dai_hoi_13.jpg",
   },
 ];

@@ -1,134 +1,106 @@
-import React, { useMemo } from 'react';
+import React, { useLayoutEffect, useMemo } from 'react';
+import { useGLTF, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { Text } from '@react-three/drei';
 
 export default function DetailedTank() {
-  const wheelCount = 5;
+  const { scene } = useGLTF('/assets/models/t_5455_tank.glb');
+  const bgTexture = useTexture('/assets/images/tank_background.jpg');
 
-  const trackShape = useMemo(() => {
+  useLayoutEffect(() => {
+    if (!scene) return;
+
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+
+    const clone = scene.clone();
+    clone.position.set(0, 0, 0);
+    clone.rotation.set(0, 0, 0);
+    clone.scale.set(1, 1, 1);
+    clone.updateMatrixWorld(true);
+
+    const box = new THREE.Box3().setFromObject(clone);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    
+    const maxDim = Math.max(size.x, size.y, size.z);
+    let scale = 1;
+    if (maxDim > 0) {
+      // Bệ trưng bày rộng khoảng 1.5 - 2 đơn vị.
+      // Mô hình cũ sau khi scale là khoảng 1.1 đơn vị. Gấp 4 lần = 4.4 đơn vị.
+      scale = 4.4 / maxDim; 
+    }
+
+    scene.scale.setScalar(scale);
+    scene.position.sub(center.multiplyScalar(scale));
+    scene.position.y += (size.y * scale) / 2;
+  }, [scene]);
+
+  // VPA Roundel Star
+  const starShape = useMemo(() => {
     const shape = new THREE.Shape();
-    shape.moveTo(-1.2, -0.2);
-    shape.lineTo(1.2, -0.2);
-    shape.absarc(1.2, 0.1, 0.3, -Math.PI / 2, Math.PI / 2, false);
-    shape.lineTo(-1.2, 0.4);
-    shape.absarc(-1.2, 0.1, 0.3, Math.PI / 2, -Math.PI / 2, false);
+    const outerRadius = 0.15;
+    const innerRadius = 0.06;
+    for (let i = 0; i < 10; i++) {
+      const angle = (i * Math.PI) / 5 - Math.PI / 2;
+      const radius = i % 2 === 0 ? outerRadius : innerRadius;
+      if (i === 0) shape.moveTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+      else shape.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+    }
+    shape.closePath();
     return shape;
   }, []);
-
-  const trackSettings = {
-    depth: 0.4,
-    bevelEnabled: true,
-    bevelSegments: 2,
-    steps: 1,
-    bevelSize: 0.05,
-    bevelThickness: 0.05,
-  };
-
-  const bodyShape = useMemo(() => {
-    const shape = new THREE.Shape();
-    // Profile of tank hull (sloped armor)
-    shape.moveTo(-1.6, 0);
-    shape.lineTo(1.5, 0);
-    shape.lineTo(1.6, 0.3); // front slope
-    shape.lineTo(1.3, 0.6);
-    shape.lineTo(-1.4, 0.6);
-    shape.lineTo(-1.6, 0.3);
-    return shape;
-  }, []);
-
-  const bodySettings = {
-    depth: 1.6,
-    bevelEnabled: true,
-    bevelSegments: 2,
-    steps: 1,
-    bevelSize: 0.05,
-    bevelThickness: 0.05,
-  };
 
   return (
-    <group scale={0.6} position={[0, -0.2, 0]} rotation={[0, Math.PI / 5, 0]}>
-      {/* Left Tracks & Wheels */}
-      <group position={[0, 0.3, 0.9]}>
-        <mesh castShadow receiveShadow>
-          <extrudeGeometry args={[trackShape, trackSettings]} />
-          <meshStandardMaterial color="#1a1a1a" roughness={0.9} />
-        </mesh>
-        {[...Array(wheelCount)].map((_, i) => (
-          <mesh key={`L-${i}`} position={[-1.0 + i * 0.5, 0.1, 0.2]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-            <cylinderGeometry args={[0.25, 0.25, 0.45, 16]} />
-            <meshStandardMaterial color="#2a3322" metalness={0.5} roughness={0.7} />
-          </mesh>
-        ))}
-      </group>
-
-      {/* Right Tracks & Wheels */}
-      <group position={[0, 0.3, -1.3]}>
-        <mesh castShadow receiveShadow>
-          <extrudeGeometry args={[trackShape, trackSettings]} />
-          <meshStandardMaterial color="#1a1a1a" roughness={0.9} />
-        </mesh>
-        {[...Array(wheelCount)].map((_, i) => (
-          <mesh key={`R-${i}`} position={[-1.0 + i * 0.5, 0.1, 0.2]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-            <cylinderGeometry args={[0.25, 0.25, 0.45, 16]} />
-            <meshStandardMaterial color="#2a3322" metalness={0.5} roughness={0.7} />
-          </mesh>
-        ))}
-      </group>
-
-      {/* Main Body Hull */}
-      <mesh position={[0, 0.3, -0.8]} castShadow receiveShadow>
-        <extrudeGeometry args={[bodyShape, bodySettings]} />
-        <meshStandardMaterial color="#455533" roughness={0.8} />
+    <group position={[0, -0.4, 0]} rotation={[0, Math.PI / 5, 0]}>
+      {/* Background Image Panel */}
+      {/* Đưa sang bên trái mô hình (trục +X) */}
+      <mesh position={[3, 1.5, 0]} rotation={[0, -Math.PI / 2, 0]}>
+        <planeGeometry args={[4.8, 2.7]} />
+        <meshBasicMaterial map={bgTexture} side={THREE.DoubleSide} />
       </mesh>
 
-      {/* Turret */}
-      <group position={[0.2, 0.9, 0]}>
-        {/* Dome */}
-        <mesh castShadow receiveShadow position={[0, 0.15, 0]}>
-          <sphereGeometry args={[0.7, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          <meshStandardMaterial color="#3d4a2d" roughness={0.7} />
+      <primitive object={scene} />
+
+      {/* Decals */}
+      {/* GLB faces Z, so sides are on the X axis. */}
+      {/* Y tăng lên 2.2 để nằm trên tháp pháo, X = 1.3 và -1.3 để nằm hai bên hông */}
+      
+      {/* Left Side Decal (+X side) */}
+      <group position={[1.3, 2.2, 0.2]} rotation={[0, Math.PI / 2, 0]}>
+        <mesh position={[-0.4, 0, 0]}>
+          <circleGeometry args={[0.2, 32]} />
+          <meshStandardMaterial color="#c1121f" roughness={0.5} />
         </mesh>
-        {/* Main Gun Barrel */}
-        <mesh position={[1.5, 0.25, 0]} rotation={[0, 0, -Math.PI / 2]} castShadow>
-          <cylinderGeometry args={[0.08, 0.12, 2.0, 16]} />
-          <meshStandardMaterial color="#3d4a2d" roughness={0.7} />
+        <mesh position={[-0.4, 0, 0.01]}>
+          <shapeGeometry args={[starShape]} />
+          <meshStandardMaterial color="#ffd700" roughness={0.5} />
         </mesh>
-        {/* Muzzle Brake */}
-        <mesh position={[2.5, 0.25, 0]} rotation={[0, 0, -Math.PI / 2]} castShadow>
-          <cylinderGeometry args={[0.12, 0.12, 0.3, 16]} />
-          <meshStandardMaterial color="#2a3322" roughness={0.8} />
-        </mesh>
-        {/* Anti-aircraft Machine Gun */}
-        <group position={[-0.2, 0.8, -0.2]}>
-           <mesh rotation={[0, 0, -Math.PI / 6]} castShadow>
-              <cylinderGeometry args={[0.02, 0.02, 0.8]} />
-              <meshStandardMaterial color="#1a1a1a" metalness={0.8} roughness={0.3} />
-           </mesh>
-        </group>
-        {/* Hatch */}
-        <mesh position={[-0.3, 0.82, 0.2]} rotation={[Math.PI / 2, 0, 0]}>
-           <cylinderGeometry args={[0.2, 0.2, 0.05, 16]} />
-           <meshStandardMaterial color="#455533" />
-        </mesh>
+        <Text position={[0.1, 0, 0.01]} fontSize={0.4} color="#ffffff" font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf">
+          390
+        </Text>
       </group>
-
-      {/* External Fuel Tanks */}
-      <mesh position={[-1.6, 0.6, 0.5]} rotation={[0, 0, Math.PI / 2]} castShadow>
-         <cylinderGeometry args={[0.2, 0.2, 0.6, 16]} />
-         <meshStandardMaterial color="#3d4a2d" roughness={0.8} />
-      </mesh>
-      <mesh position={[-1.6, 0.6, -0.5]} rotation={[0, 0, Math.PI / 2]} castShadow>
-         <cylinderGeometry args={[0.2, 0.2, 0.6, 16]} />
-         <meshStandardMaterial color="#3d4a2d" roughness={0.8} />
-      </mesh>
-
-      {/* Text 390 */}
-      <Text position={[0.7, 1.25, 0.7]} rotation={[0, Math.PI/2.5, 0]} fontSize={0.25} color="#ffffff" font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf">
-        390
-      </Text>
-      <Text position={[0.7, 1.25, -0.7]} rotation={[0, -Math.PI/2.5, 0]} fontSize={0.25} color="#ffffff" font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf">
-        390
-      </Text>
+      
+      {/* Right Side Decal (-X side) */}
+      <group position={[-1.3, 2.2, 0.2]} rotation={[0, -Math.PI / 2, 0]}>
+        <mesh position={[-0.4, 0, 0]}>
+          <circleGeometry args={[0.2, 32]} />
+          <meshStandardMaterial color="#c1121f" roughness={0.5} />
+        </mesh>
+        <mesh position={[-0.4, 0, 0.01]}>
+          <shapeGeometry args={[starShape]} />
+          <meshStandardMaterial color="#ffd700" roughness={0.5} />
+        </mesh>
+        <Text position={[0.1, 0, 0.01]} fontSize={0.4} color="#ffffff" font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf">
+          390
+        </Text>
+      </group>
     </group>
   );
 }
+
+useGLTF.preload('/assets/models/t_5455_tank.glb');

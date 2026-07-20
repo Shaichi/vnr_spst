@@ -13,6 +13,7 @@ import DetailedTypewriter from "./models/DetailedTypewriter";
 import DetailedSandals from "./models/DetailedSandals";
 import DetailedMonument from "./models/DetailedMonument";
 import BstBacHo from "./models/BstBacHo";
+import DetailedPen from "./models/DetailedPen";
 
 import PostProcessingPipeline from "./PostProcessingPipeline";
 import "@/components/shaders/MarbleFloorShader";
@@ -200,20 +201,16 @@ function GrandWall({ position, rotation }: { position: [number, number, number];
         <meshStandardMaterial color="#e8d5b5" roughness={0.8} />
       </mesh>
       
-      {/* Red Velvet Center Panel */}
-      <mesh position={[0, 4, 0.02]} receiveShadow>
-        <boxGeometry args={[6, 7, 0.05]} />
-        <meshStandardMaterial color="#9a0000" roughness={0.9} />
+      {/* Gold Frame (Viền vàng phía sau lót) */}
+      <mesh position={[0, 4, 0.01]}>
+        <boxGeometry args={[6.4, 7.4, 0.04]} />
+        <meshStandardMaterial color="#ffd700" metalness={0.9} roughness={0.2} />
       </mesh>
       
-      {/* Gold Frame around Red Panel */}
-      <mesh position={[0, 4, 0.03]}>
-        <boxGeometry args={[6.2, 7.2, 0.02]} />
-        <meshStandardMaterial color="#ffd700" metalness={0.9} roughness={0.2} />
-      </mesh>
-      <mesh position={[0, 4, 0.04]}>
-        <boxGeometry args={[5.8, 6.8, 0.04]} />
-        <meshStandardMaterial color="#ffd700" metalness={0.9} roughness={0.2} />
+      {/* Red Velvet Center Panel (Nền cờ đỏ) */}
+      <mesh position={[0, 4, 0.03]} receiveShadow>
+        <boxGeometry args={[6, 7, 0.02]} />
+        <meshStandardMaterial color="#d00000" roughness={0.9} />
       </mesh>
 
       {/* Side Marble Panels */}
@@ -439,6 +436,7 @@ function ArtifactShape({ artifact }: { artifact: ArtifactData }) {
       if (id === 'xe-tang-390') return <DetailedTank />;
       if (id === 'may-chu-bac-ho') return <DetailedTypewriter />;
       if (id === 'dep-cao-su') return <DetailedSandals />;
+      if (id === 'wto-accession') return <DetailedPen />;
       return (
         <mesh castShadow>
           <boxGeometry args={[1, 1, 1]} />
