@@ -95,7 +95,7 @@ export const ARTIFACTS: ArtifactData[] = [
     position: [-22, 1, 18],
     color: "#e6ccaa",
     type: "document",
-    imageUrl: "/assets/images/bao_thanh_nien.png",
+    imageUrl: "/assets/images/bao_thanh_nien.jpg",
   },
   {
     id: "cuong-linh-1930",
@@ -106,6 +106,7 @@ export const ARTIFACTS: ArtifactData[] = [
     position: [-26, 1, 12],
     color: "#ff4444",
     type: "document",
+    imageUrl: "/assets/images/cuong_linh_1930.jpg",
   },
   {
     id: "co-dang-1930",
@@ -116,6 +117,7 @@ export const ARTIFACTS: ArtifactData[] = [
     position: [-22, 1, 6],
     color: "#cc0000",
     type: "flag",
+    imageUrl: "/assets/images/co_dang_1930.webp",
   },
   {
     id: "chi-thi-nhat-phap",
@@ -126,6 +128,7 @@ export const ARTIFACTS: ArtifactData[] = [
     position: [-18, 1, 12],
     color: "#d4a373",
     type: "document",
+    imageUrl: "/assets/images/chi_thi_nhat_phap.jpg",
   },
 
   // ==========================================
@@ -160,6 +163,7 @@ export const ARTIFACTS: ArtifactData[] = [
     position: [0, 1, -24],
     color: "#ff3300",
     type: "flag",
+    imageUrl: "/assets/images/co_quyet_chien.webp",
   },
   {
     id: "dep-cao-su",

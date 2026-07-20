@@ -1,120 +1,44 @@
-import React, { useMemo } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
+import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
 export default function DetailedSandals() {
-  // Biên dạng đế dép
-  const soleShape = useMemo(() => {
-    const shape = new THREE.Shape();
-    shape.moveTo(-0.15, -0.4);
-    shape.quadraticCurveTo(-0.25, -0.4, -0.25, -0.2); // gót dép
-    shape.lineTo(-0.2, 0.1); // eo dép
-    shape.quadraticCurveTo(-0.3, 0.4, -0.15, 0.5); // mũi dép trái
-    shape.quadraticCurveTo(0, 0.55, 0.15, 0.5); // mũi dép phải
-    shape.quadraticCurveTo(0.3, 0.4, 0.2, 0.1);
-    shape.lineTo(0.25, -0.2); // gót phải
-    shape.quadraticCurveTo(0.25, -0.4, 0.15, -0.4); // bo tròn gót
-    shape.lineTo(-0.15, -0.4);
-    return shape;
-  }, []);
+  const { scene } = useGLTF('/assets/models/dep.glb');
+  const groupRef = useRef<THREE.Group>(null);
 
-  const extrudeSole = {
-    depth: 0.04,
-    bevelEnabled: true,
-    bevelSegments: 2,
-    steps: 1,
-    bevelSize: 0.01,
-    bevelThickness: 0.01,
-  };
+  useLayoutEffect(() => {
+    if (groupRef.current) {
+      // Create a temporary clone to measure its pure local bounding box
+      const measureScene = scene.clone();
+      measureScene.position.set(0, 0, 0);
+      measureScene.scale.set(1, 1, 1);
+      measureScene.rotation.set(0, 0, 0);
+      measureScene.updateMatrixWorld(true);
 
-  // Đường cong quai dép (Curve)
-  const strapCurve1 = useMemo(() => {
-    return new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(-0.22, 0.02, 0.2),
-      new THREE.Vector3(0, 0.15, 0.2),
-      new THREE.Vector3(0.22, 0.02, 0.15)
-    );
-  }, []);
+      const box = new THREE.Box3().setFromObject(measureScene);
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      
+      if (maxDim > 0) {
+        const scale = 0.6 / maxDim; // 0.6 unit width/depth/height
+        groupRef.current.scale.set(scale, scale, scale);
 
-  const strapCurve2 = useMemo(() => {
-    return new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(-0.22, 0.02, 0.1),
-      new THREE.Vector3(0, 0.15, 0.1),
-      new THREE.Vector3(0.22, 0.02, 0.2)
-    );
-  }, []);
-
-  const strapCurveFront = useMemo(() => {
-    return new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(-0.15, 0.02, 0.45),
-      new THREE.Vector3(0, 0.12, 0.4),
-      new THREE.Vector3(0.15, 0.02, 0.45)
-    );
-  }, []);
-
-  const strapCurveFront2 = useMemo(() => {
-    return new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(-0.1, 0.02, 0.4),
-      new THREE.Vector3(0, 0.12, 0.45),
-      new THREE.Vector3(0.1, 0.02, 0.4)
-    );
-  }, []);
+        const center = box.getCenter(new THREE.Vector3());
+        const bottom = box.min.y;
+        
+        // Shift actual scene so its bounding box bottom is at 0 and centered on X/Z
+        scene.position.set(-center.x, -bottom, -center.z);
+      }
+    }
+  }, [scene]);
 
   return (
-    <group scale={1.5} position={[0, -0.3, 0]}>
-      {/* Chiếc dép trái */}
-      <group position={[-0.3, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        {/* Đế dép */}
-        <mesh castShadow receiveShadow>
-          <extrudeGeometry args={[soleShape, extrudeSole]} />
-          <meshStandardMaterial color="#181818" roughness={0.9} />
-        </mesh>
-        
-        {/* Quai hậu (chéo nhau) */}
-        <mesh castShadow>
-          <tubeGeometry args={[strapCurve1, 20, 0.02, 8, false]} />
-          <meshStandardMaterial color="#111111" roughness={0.9} />
-        </mesh>
-        <mesh castShadow>
-          <tubeGeometry args={[strapCurve2, 20, 0.02, 8, false]} />
-          <meshStandardMaterial color="#111111" roughness={0.9} />
-        </mesh>
-        {/* Quai trước (chéo nhau) */}
-        <mesh castShadow>
-          <tubeGeometry args={[strapCurveFront, 20, 0.02, 8, false]} />
-          <meshStandardMaterial color="#111111" roughness={0.9} />
-        </mesh>
-        <mesh castShadow>
-          <tubeGeometry args={[strapCurveFront2, 20, 0.02, 8, false]} />
-          <meshStandardMaterial color="#111111" roughness={0.9} />
-        </mesh>
-      </group>
-
-      {/* Chiếc dép phải (Lật ngược trục X một chút và xoay xéo) */}
-      <group position={[0.3, 0, 0.1]} rotation={[-Math.PI / 2, 0, -0.2]}>
-        <mesh scale={[-1, 1, 1]} castShadow receiveShadow>
-          <extrudeGeometry args={[soleShape, extrudeSole]} />
-          <meshStandardMaterial color="#181818" roughness={0.9} />
-        </mesh>
-        
-        {/* Quai hậu */}
-        <mesh castShadow scale={[-1, 1, 1]}>
-          <tubeGeometry args={[strapCurve1, 20, 0.02, 8, false]} />
-          <meshStandardMaterial color="#111111" roughness={0.9} />
-        </mesh>
-        <mesh castShadow scale={[-1, 1, 1]}>
-          <tubeGeometry args={[strapCurve2, 20, 0.02, 8, false]} />
-          <meshStandardMaterial color="#111111" roughness={0.9} />
-        </mesh>
-        {/* Quai trước */}
-        <mesh castShadow scale={[-1, 1, 1]}>
-          <tubeGeometry args={[strapCurveFront, 20, 0.02, 8, false]} />
-          <meshStandardMaterial color="#111111" roughness={0.9} />
-        </mesh>
-        <mesh castShadow scale={[-1, 1, 1]}>
-          <tubeGeometry args={[strapCurveFront2, 20, 0.02, 8, false]} />
-          <meshStandardMaterial color="#111111" roughness={0.9} />
-        </mesh>
+    <group position={[0, -0.49, 0]}>
+      <group ref={groupRef}>
+        <primitive object={scene} castShadow receiveShadow />
       </group>
     </group>
   );
 }
+
+useGLTF.preload('/assets/models/dep.glb');

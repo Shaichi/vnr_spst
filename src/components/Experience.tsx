@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { CameraControls, Text, Float, Sparkles, MeshReflectorMaterial, Environment, CubicBezierLine, Image, ContactShadows } from "@react-three/drei";
+import { CameraControls, Text, Float, Sparkles, MeshReflectorMaterial, Environment, CubicBezierLine, Image, ContactShadows, useTexture } from "@react-three/drei";
 import { Suspense, useState, useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { useStore } from "@/store/useStore";
@@ -358,6 +358,67 @@ function WallWithDoor({ position, rotation, width, height = 12, doorWidth = 6, d
 // ARTIFACT COMPONENTS & MODELS
 // ==========================================
 
+function FlagImage({ url }: { url: string }) {
+  const texture = useTexture(url);
+  const aspect = texture.image ? texture.image.width / texture.image.height : 1.5;
+  return (
+    <mesh>
+      <planeGeometry args={[1.5, 1.5 / aspect]} />
+      <meshStandardMaterial map={texture} side={THREE.DoubleSide} transparent={false} />
+    </mesh>
+  );
+}
+
+function DocumentFrameWithImage({ url }: { url: string }) {
+  const texture = useTexture(url);
+  const aspect = texture.image ? texture.image.width / texture.image.height : 1.2 / 1.6;
+  const innerWidth = 1.5; // Tăng gấp 1.5 lần
+  const innerHeight = innerWidth / aspect;
+  const frameWidth = innerWidth + 0.3; // Tăng viền lên tương ứng
+  const frameHeight = innerHeight + 0.3;
+  
+  return (
+    <group rotation={[-Math.PI / 6, 0, 0]}>
+      <mesh castShadow receiveShadow position={[0, 0, -0.05]}>
+        <boxGeometry args={[frameWidth, frameHeight, 0.1]} />
+        <meshStandardMaterial color="#3a1f0b" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0, 0.01]}>
+         <planeGeometry args={[innerWidth, innerHeight]} />
+         <meshStandardMaterial color="#f0e6d2" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 0, 0.02]}>
+        <planeGeometry args={[innerWidth * 0.9, innerHeight * 0.9]} />
+        {/* Sử dụng meshBasicMaterial để ảnh không bị tối đi do ánh sáng/đổ bóng, giúp ảnh rõ nét nhất */}
+        <meshBasicMaterial map={texture} transparent={false} />
+      </mesh>
+    </group>
+  );
+}
+
+function DocumentFrameWithoutImage({ title }: { title: string }) {
+  const innerWidth = 1.5;
+  const innerHeight = 2.1;
+  const frameWidth = 1.8;
+  const frameHeight = 2.4;
+
+  return (
+    <group rotation={[-Math.PI / 6, 0, 0]}>
+      <mesh castShadow receiveShadow position={[0, 0, -0.05]}>
+        <boxGeometry args={[frameWidth, frameHeight, 0.1]} />
+        <meshStandardMaterial color="#3a1f0b" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0, 0.01]}>
+         <planeGeometry args={[innerWidth, innerHeight]} />
+         <meshStandardMaterial color="#f0e6d2" roughness={0.9} />
+      </mesh>
+      <Text position={[0, 0, 0.02]} fontSize={0.12} color="#000" maxWidth={innerWidth * 0.8} textAlign="center">
+        {title.toUpperCase()}
+      </Text>
+    </group>
+  );
+}
+
 function ArtifactShape({ artifact }: { artifact: ArtifactData }) {
   const { type, color, id, imageUrl, title } = artifact;
 
@@ -390,36 +451,21 @@ function ArtifactShape({ artifact }: { artifact: ArtifactData }) {
           </mesh>
           <group position={[-0.05, 0.75, 0]}>
             {imageUrl ? (
-              <Image url={imageUrl} scale={[1.5, 1]} position={[0, 0, 0]} transparent />
+              <FlagImage url={imageUrl} />
             ) : (
               <mesh>
                  <planeGeometry args={[1.5, 1]} />
-                 <meshStandardMaterial color={color} />
+                 <meshStandardMaterial color={color} side={THREE.DoubleSide} />
               </mesh>
             )}
           </group>
         </group>
       );
     case 'document':
-      return (
-        <group rotation={[-Math.PI / 6, 0, 0]}>
-          <mesh castShadow receiveShadow position={[0, 0, -0.05]}>
-            <boxGeometry args={[1.2, 1.6, 0.1]} />
-            <meshStandardMaterial color="#3a1f0b" roughness={0.8} />
-          </mesh>
-          <mesh position={[0, 0, 0.01]}>
-             <planeGeometry args={[1.0, 1.4]} />
-             <meshStandardMaterial color="#f0e6d2" roughness={0.9} />
-          </mesh>
-          {imageUrl ? (
-            <Image url={imageUrl} scale={[0.9, 1.3]} position={[0, 0, 0.02]} />
-          ) : (
-            <Text position={[0, 0, 0.02]} fontSize={0.12} color="#000" maxWidth={0.8} textAlign="center">
-              {title.toUpperCase()}
-            </Text>
-          )}
-        </group>
-      );
+      if (imageUrl) {
+        return <DocumentFrameWithImage url={imageUrl} />;
+      }
+      return <DocumentFrameWithoutImage title={title} />;
     default:
       return (
         <mesh castShadow>
