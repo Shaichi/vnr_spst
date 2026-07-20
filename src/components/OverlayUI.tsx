@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useStore } from "@/store/useStore";
 import { ROOMS, ARTIFACTS } from "@/data/museumData";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Play, BookOpen, Volume2, VolumeX, Minus, Plus, HelpCircle, CheckCircle2 } from "lucide-react";
+import { X, Play, Square, BookOpen, Volume2, VolumeX, Minus, Plus, HelpCircle, CheckCircle2 } from "lucide-react";
 
 export default function OverlayUI() {
   const [isListOpen, setIsListOpen] = useState(false);
@@ -20,6 +20,8 @@ export default function OverlayUI() {
   const zoomPercentage = useStore((state) => state.zoomPercentage);
   const zoomIn = useStore((state) => state.zoomIn);
   const zoomOut = useStore((state) => state.zoomOut);
+  const isTourMode = useStore((state) => state.isTourMode);
+  const setTourMode = useStore((state) => state.setTourMode);
 
   const activeArtifact = activeArtifactId ? ARTIFACTS.find((a) => a.id === activeArtifactId) : null;
   const currentRoom = ROOMS.find((r) => r.id === activeRoomId) || ROOMS[0];
@@ -147,6 +149,17 @@ export default function OverlayUI() {
               );
             })}
           </div>
+
+          {/* Tour Mode Toggle */}
+          <button
+            onClick={() => setTourMode(!isTourMode)}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-full border border-white/10 text-xs font-semibold text-white transition-colors shadow-xl ${
+              isTourMode ? "bg-red-600 hover:bg-red-500" : "bg-blue-600 hover:bg-blue-500"
+            }`}
+          >
+            {isTourMode ? <Square size={14} /> : <Play size={14} />}
+            <span>{isTourMode ? "Dừng Tour" : "Start Tour"}</span>
+          </button>
 
           {/* Sound Toggle (Matches reference top right) */}
           <button
