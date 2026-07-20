@@ -18,9 +18,9 @@ export default function PostProcessingPipeline() {
       {/* High-Resolution Soft Depth of Field (Crisp focus, no text duplication) */}
       <DepthOfField
         focusDistance={focusDistance}
-        focalLength={0.018}
-        bokehScale={activeArtifactId ? 1.8 : 0.8}
-        height={720}
+        focalLength={0.015}
+        bokehScale={activeArtifactId ? 1.5 : 0.5}
+        height={1080}
       />
 
       {/* Feathered Radial Focus Mask Effect on Active Artifact */}
