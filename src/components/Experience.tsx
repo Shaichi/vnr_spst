@@ -1,8 +1,8 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { CameraControls, Text, Float, Sparkles, MeshReflectorMaterial, Environment, CubicBezierLine, Image } from "@react-three/drei";
-import { Suspense, useState, useRef, useEffect } from "react";
+import { CameraControls, Text, Float, Sparkles, MeshReflectorMaterial, Environment, CubicBezierLine, Image, ContactShadows } from "@react-three/drei";
+import { Suspense, useState, useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { useStore } from "@/store/useStore";
 import { ARTIFACTS, ROOMS, ArtifactData } from "@/data/museumData";
@@ -116,6 +116,51 @@ function ArchitecturalPillar({ position }: { position: [number, number, number] 
   );
 }
 
+// 1b. Ngôi Sao Vàng 5 Cánh 3D Thật (Golden 5-Pointed Star)
+function Golden5PointStar({ position = [0, 5.8, 0.05] }: { position?: [number, number, number] }) {
+  const starShape = useMemo(() => {
+    const shape = new THREE.Shape();
+    const outerRadius = 0.85;
+    const innerRadius = 0.34;
+    const points = 5;
+    const step = Math.PI / points;
+    for (let i = 0; i < 2 * points; i++) {
+      const r = i % 2 === 0 ? outerRadius : innerRadius;
+      const a = i * step + Math.PI / 2; // Straight up
+      const x = r * Math.cos(a);
+      const y = r * Math.sin(a);
+      if (i === 0) shape.moveTo(x, y);
+      else shape.lineTo(x, y);
+    }
+    shape.closePath();
+    return shape;
+  }, []);
+
+  const extrudeSettings = useMemo(() => ({
+    depth: 0.12,
+    bevelEnabled: true,
+    bevelSegments: 4,
+    steps: 1,
+    bevelSize: 0.05,
+    bevelThickness: 0.05,
+  }), []);
+
+  return (
+    <group position={position}>
+      <mesh castShadow receiveShadow>
+        <extrudeGeometry args={[starShape, extrudeSettings]} />
+        <meshStandardMaterial
+          color="#ffd700"
+          metalness={0.9}
+          roughness={0.15}
+          emissive="#ffaa00"
+          emissiveIntensity={0.35}
+        />
+      </mesh>
+    </group>
+  );
+}
+
 // 2. Bức Tường Khánh Tiết (Grand Wall Panels)
 function GrandWall({ position, rotation }: { position: [number, number, number]; rotation: [number, number, number] }) {
   return (
@@ -162,11 +207,8 @@ function GrandWall({ position, rotation }: { position: [number, number, number];
         <meshStandardMaterial color="#ffd700" metalness={1} roughness={0.1} />
       </mesh>
 
-      {/* Tôn vinh Ngôi Sao Vàng hoặc Búa Liềm (Placeholder Star) */}
-      <mesh position={[0, 6, 0.15]} rotation={[0, 0, Math.PI / 10]}>
-        <octahedronGeometry args={[0.7]} />
-        <meshStandardMaterial color="#ffd700" metalness={0.9} roughness={0.1} emissive="#ffaa00" emissiveIntensity={0.4} />
-      </mesh>
+      {/* Ngôi Sao Vàng 5 Cánh Kim Loại Rực Rỡ */}
+      <Golden5PointStar position={[0, 5.8, 0.05]} />
     </group>
   );
 }
@@ -239,17 +281,17 @@ function WallWithDoor({ position, rotation, width, height = 12, doorWidth = 6, d
   return (
     <group position={position} rotation={rotation}>
       {/* Left Wall */}
-      <mesh position={[-width/2 + wallWidth/2, height/2 - 1, 0]} receiveShadow castShadow>
+      <mesh position={[-width/2 + wallWidth/2, height/2 - 1, 0]} receiveShadow>
         <boxGeometry args={[wallWidth, height, 0.5]} />
         <meshStandardMaterial color="#e8d5b5" roughness={0.9} />
       </mesh>
       {/* Right Wall */}
-      <mesh position={[width/2 - wallWidth/2, height/2 - 1, 0]} receiveShadow castShadow>
+      <mesh position={[width/2 - wallWidth/2, height/2 - 1, 0]} receiveShadow>
         <boxGeometry args={[wallWidth, height, 0.5]} />
         <meshStandardMaterial color="#e8d5b5" roughness={0.9} />
       </mesh>
       {/* Top Lintel */}
-      <mesh position={[0, height - (height - doorHeight)/2 - 1, 0]} receiveShadow castShadow>
+      <mesh position={[0, height - (height - doorHeight)/2 - 1, 0]} receiveShadow>
         <boxGeometry args={[doorWidth, height - doorHeight, 0.5]} />
         <meshStandardMaterial color="#e8d5b5" roughness={0.9} />
       </mesh>
@@ -395,6 +437,20 @@ function ArtifactSpotlight({ position }: { position: [number, number, number] })
         <meshBasicMaterial color="#ffcc88" />
       </mesh>
 
+
+
+      {/* 3D Volumetric Sunlight Beam (Tia nắng vàng 3D) */}
+      <mesh position={[0, -6, 0]}>
+        <coneGeometry args={[1.6, 12, 32, 1, true]} />
+        <volumetricLightMaterial
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          uOpacity={0.09}
+          uColor={new THREE.Color("#ffb855")}
+        />
+      </mesh>
+
       <spotLight
         ref={lightRef}
         position={[0, -0.4, 0]}
@@ -422,12 +478,20 @@ function PedestalArtifact({ artifact }: { artifact: ArtifactData }) {
 
   return (
     <group position={artifact.position}>
-      {!isVisited && (
-        <mesh position={[0, isMonument ? 0.1 : 0.3, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[1.0, 1.2, 32]} />
-          <meshBasicMaterial color="#ffd700" transparent opacity={0.85} />
+      {/* Cozy Golden Aura Ring on Hover or Selection */}
+      {(hovered || isSelected) && (
+        <mesh position={[0, isMonument ? 0.02 : -0.38, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[isMonument ? 4.2 : 1.25, isMonument ? 4.6 : 1.5, 64]} />
+          <goldenAuraMaterial
+            transparent
+            uColor={new THREE.Color("#ffd700")}
+            uGlowColor={new THREE.Color("#ff8800")}
+            uPower={2.0}
+            uIntensity={2.5}
+          />
         </mesh>
       )}
+
       {!isMonument ? (
         <>
           {/* Grand Pedestal */}
@@ -455,9 +519,9 @@ function PedestalArtifact({ artifact }: { artifact: ArtifactData }) {
         <SteppedPodium position={[0, 0, 0]} />
       )}
 
-      {/* Artifact Mesh */}
+      {/* Artifact Mesh - Anchored firmly to podium/pedestal */}
       <group 
-        position={[0, isMonument ? 1 : 0.8, 0]}
+        position={[0, isMonument ? 0.6 : 0.8, 0]}
         onClick={(e) => {
           e.stopPropagation();
           setActiveArtifact(artifact.id);
@@ -465,29 +529,54 @@ function PedestalArtifact({ artifact }: { artifact: ArtifactData }) {
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
-        <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
-          {/* Truyền hovered xuống để tự phát sáng khi trỏ chuột */}
-          <group scale={hovered || isSelected ? 1.1 : 1}>
-             <ArtifactShape artifact={artifact} />
-          </group>
-        </Float>
+        <group scale={hovered || isSelected ? 1.08 : 1}>
+           <ArtifactShape artifact={artifact} />
+        </group>
       </group>
 
-      {/* Bảng tên hiện vật mạ vàng */}
-      <group position={[0, isMonument ? -0.1 : 0.35, 0.76]} rotation={[-Math.PI / 6, 0, 0]}>
-        <mesh>
-          <boxGeometry args={[1.2, 0.3, 0.02]} />
-          <meshStandardMaterial color="#ffd700" metalness={1} roughness={0.2} />
+      {/* Bảng Tên Khắc Đồng Kim Loại Nẹp Gụ (Luxury Museum Brass Plaque) */}
+      <group 
+        position={isMonument ? [0, 0.45, 1.8] : [0, 0.32, 0.78]} 
+        rotation={[-Math.PI / 7, 0, 0]}
+      >
+        {/* Khung đế gỗ mun sẫm màu bên dưới */}
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[1.3, 0.32, 0.03]} />
+          <meshStandardMaterial color="#1f140e" roughness={0.7} metalness={0.1} />
         </mesh>
+        
+        {/* Mặt biển đồng mạ vàng bóng bẩy */}
+        <mesh position={[0, 0, 0.018]}>
+          <boxGeometry args={[1.22, 0.26, 0.01]} />
+          <meshStandardMaterial color="#c59b27" roughness={0.25} metalness={0.85} />
+        </mesh>
+        
+        {/* Viền nổi mạ vàng sáng bóng xung quanh mặt biển */}
+        <mesh position={[0, 0, 0.022]}>
+          <boxGeometry args={[1.24, 0.28, 0.005]} />
+          <meshStandardMaterial color="#ffd700" roughness={0.1} metalness={0.95} />
+        </mesh>
+
+        {/* 2 Đinh tán kim loại 2 bên góc */}
+        <mesh position={[-0.56, 0, 0.025]} rotation={[0, Math.PI / 2, 0]}>
+          <cylinderGeometry args={[0.015, 0.015, 0.01, 16]} />
+          <meshStandardMaterial color="#4a3517" roughness={0.3} metalness={0.9} />
+        </mesh>
+        <mesh position={[0.56, 0, 0.025]} rotation={[0, Math.PI / 2, 0]}>
+          <cylinderGeometry args={[0.015, 0.015, 0.01, 16]} />
+          <meshStandardMaterial color="#4a3517" roughness={0.3} metalness={0.9} />
+        </mesh>
+
+        {/* Chữ khắc kim loại sẫm màu sang trọng */}
         <Text
-          position={[0, 0, 0.02]}
-          fontSize={0.08}
-          color="#000000"
+          position={[0, 0, 0.026]}
+          fontSize={0.065}
+          color="#1a0f05"
           anchorX="center"
           anchorY="middle"
-          maxWidth={1.1}
+          maxWidth={1.15}
           textAlign="center"
-          font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf"
+          letterSpacing={0.05}
         >
           {artifact.title.toUpperCase()}
         </Text>
@@ -616,22 +705,10 @@ function MuseumArchitecture() {
     <group>
       {/* Tường bao quanh tòa nhà */}
       <PerimeterWalls />
-      {/* Sàn đá/gỗ cao cấp với hiệu ứng Phản Chiếu Mờ Thời Gian Thực (MeshReflectorMaterial) */}
+      {/* Sàn đá cẩm thạch đen bóng cao cấp */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
         <planeGeometry args={[100, 100]} />
-        <MeshReflectorMaterial
-          blur={[300, 100]}
-          resolution={1024}
-          mirror={0.4}
-          mixBlur={0.8}
-          mixStrength={1.5}
-          roughness={0.6}
-          depthScale={1.2}
-          minDepthThreshold={0.4}
-          maxDepthThreshold={1.4}
-          color="#1c1410"
-          metalness={0.2}
-        />
+        <meshStandardMaterial color="#1c1410" roughness={0.25} metalness={0.4} />
       </mesh>
 
       {/* Hoa văn sàn trung tâm (Lotus Grid) */}
@@ -693,7 +770,7 @@ export default function Experience() {
 
   return (
     <Canvas
-      shadows
+      shadows={{ type: THREE.PCFSoftShadowMap }}
       camera={{ position: [0, 5.5, 28], fov: 55 }}
       gl={{
         antialias: true,
@@ -709,14 +786,32 @@ export default function Experience() {
         {/* Environment Map */}
         <Environment preset="sunset" />
 
-        {/* Global Lights - Balanced Warm Studio Lighting */}
-        <ambientLight intensity={0.35} color="#fff0db" />
-        <hemisphereLight intensity={0.4} color="#ffcc88" groundColor="#2a1a0f" />
-        <directionalLight position={[20, 30, 20]} intensity={0.7} color="#ffebcc" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0001} />
-        <directionalLight position={[-20, 25, -20]} intensity={0.4} color="#ffe4cc" />
+        {/* Global Lights - Balanced Warm Studio Lighting with Clear Shadows */}
+        <ambientLight intensity={0.25} color="#fff0db" />
+        <hemisphereLight intensity={0.35} color="#ffcc88" groundColor="#2a1a0f" />
+        <directionalLight
+          position={[0, 22, 18]}
+          intensity={1.2}
+          color="#fff2db"
+          castShadow
+          shadow-mapSize={[2048, 2048]}
+          shadow-camera-left={-40}
+          shadow-camera-right={40}
+          shadow-camera-top={40}
+          shadow-camera-bottom={-40}
+          shadow-camera-near={0.5}
+          shadow-camera-far={80}
+          shadow-bias={-0.0001}
+          shadow-normalBias={0.01}
+        />
+        <directionalLight position={[-15, 15, -15]} intensity={0.3} color="#ffe4cc" />
 
-        {/* Hạt sương/bụi mạ vàng lơ lửng */}
-        <Sparkles count={500} scale={40} size={2.5} speed={0.2} color="#ffd700" opacity={0.6} />
+        {/* Layer 1: Hạt sương mạ vàng lơ lửng lung linh (Gold Dust Sparkles) */}
+        <Sparkles count={600} scale={[65, 24, 65]} size={3.2} speed={0.25} color="#ffd700" opacity={0.7} />
+        {/* Layer 2: Hạt đom đốm cam ấm lơ lửng tầng thấp (Warm Amber Embers) */}
+        <Sparkles count={350} scale={[45, 14, 45]} size={4.5} speed={0.4} color="#ff9933" opacity={0.5} />
+        {/* Layer 3: Hạt kim tuyến ánh bạc lấp lánh tầng cao (Silver Light Dust) */}
+        <Sparkles count={250} scale={[55, 20, 55]} size={2.0} speed={0.15} color="#ffffff" opacity={0.4} />
 
         {/* Cấu trúc Bảo tàng & Hiện vật */}
         <MuseumArchitecture />
