@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useStore } from "@/store/useStore";
 import { ROOMS, ARTIFACTS } from "@/data/museumData";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,6 +32,17 @@ export default function OverlayUI() {
 
   const allVisited = visitedArtifactIds.length === ARTIFACTS.length;
   const formattedCounter = `${String(visitedArtifactIds.length).padStart(2, "0")}/${String(ARTIFACTS.length).padStart(2, "0")}`;
+
+  const [hasTriggeredAchievement, setHasTriggeredAchievement] = useState(false);
+  useEffect(() => {
+    if (allVisited && !hasTriggeredAchievement) {
+      setHasTriggeredAchievement(true);
+      setShowBadgeModal(true);
+      if (!isMuted) {
+        soundFx.playFireworks();
+      }
+    }
+  }, [allVisited, hasTriggeredAchievement, isMuted]);
 
   const handleHintClick = (artifactId: string, roomId: string) => {
     if (!isMuted) soundFx.playWoodClick();
@@ -256,20 +267,6 @@ export default function OverlayUI() {
               </p>
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-col gap-2 pt-4 border-t border-white/10">
-              <button
-                onClick={() => {
-                  if (!isMuted) soundFx.playBrassChime();
-                }}
-                className="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-600 transition-colors py-2.5 rounded-xl font-semibold text-xs uppercase tracking-wider text-white"
-              >
-                <Play size={14} /> Thuyết Minh Âm Thanh
-              </button>
-              <button className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 transition-colors py-2.5 rounded-xl font-semibold text-xs uppercase tracking-wider text-white">
-                <BookOpen size={14} /> Tài Liệu Đính Kèm
-              </button>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>

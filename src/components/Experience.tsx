@@ -18,6 +18,7 @@ import PostProcessingPipeline from "./PostProcessingPipeline";
 import "@/components/shaders/MarbleFloorShader";
 import "@/components/shaders/VolumetricLightShader";
 import "@/components/shaders/GoldenAuraMaterial";
+import { FireworksSystem } from "./effects/FireworksSystem";
 
 // ==========================================
 // CAMERA CONTROLLER
@@ -843,6 +844,7 @@ function MuseumArchitecture() {
 export default function Experience() {
   const setActiveArtifact = useStore((state) => state.setActiveArtifact);
   const isNightMode = useStore((state) => state.isNightMode);
+  const visitedArtifactIds = useStore((state) => state.visitedArtifactIds);
 
   const bg = isNightMode ? "#050302" : "#0c0806";
 
@@ -897,6 +899,9 @@ export default function Experience() {
         {ARTIFACTS.map((artifact) => (
           <PedestalArtifact key={artifact.id} artifact={artifact} />
         ))}
+        
+        {/* Pháo hoa khi hoàn thành 15/15 */}
+        <FireworksSystem isActive={visitedArtifactIds.length === 15} />
 
         {/* Camera */}
         <CameraController />
