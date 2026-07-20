@@ -361,7 +361,8 @@ function WallWithDoor({ position, rotation, width, height = 12, doorWidth = 6, d
 
 function FlagImage({ url }: { url: string }) {
   const texture = useTexture(url);
-  const aspect = texture.image ? texture.image.width / texture.image.height : 1.5;
+  const img = texture.image as any;
+  const aspect = img ? img.width / img.height : 1.5;
   return (
     <mesh>
       <planeGeometry args={[1.5, 1.5 / aspect]} />
@@ -372,7 +373,8 @@ function FlagImage({ url }: { url: string }) {
 
 function DocumentFrameWithImage({ url }: { url: string }) {
   const texture = useTexture(url);
-  const aspect = texture.image ? texture.image.width / texture.image.height : 1.2 / 1.6;
+  const img = texture.image as any;
+  const aspect = img ? img.width / img.height : 1.2 / 1.6;
   const innerWidth = 1.5; // Tăng gấp 1.5 lần
   const innerHeight = innerWidth / aspect;
   const frameWidth = innerWidth + 0.3; // Tăng viền lên tương ứng
