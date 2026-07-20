@@ -1,6 +1,7 @@
 "use client";
 
-import { EffectComposer, Bloom, Vignette, DepthOfField, SMAA } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, Vignette, DepthOfField, ChromaticAberration, SMAA } from "@react-three/postprocessing";
+import { Vector2 } from "three";
 import { useStore } from "@/store/useStore";
 import { RadialFocusMask } from "@/components/shaders/RadialFocusMaskEffect";
 
@@ -9,8 +10,8 @@ export default function PostProcessingPipeline() {
   const activeArtifact = useStore((state) => state.getActiveArtifact());
 
   const isMonument = activeArtifact?.type === 'monument';
-  // Dynamic focal plane: 6.5m for monuments, 4.8m for standard artifacts, 3.5m for ambient hall view
-  const focusDistance = activeArtifact ? (isMonument ? 0.065 : 0.048) : 0.035;
+  // Dynamic focal plane: 4.6m for monuments, 2.9m for standard artifacts, 3.5m for ambient hall view
+  const focusDistance = activeArtifact ? (isMonument ? 0.046 : 0.029) : 0.035;
 
   return (
     <EffectComposer multisampling={0}>
@@ -44,6 +45,13 @@ export default function PostProcessingPipeline() {
         eskil={false}
         offset={0.18}
         darkness={0.62}
+      />
+
+      {/* Subtle Camera Lens Edge Chromatic Aberration */}
+      <ChromaticAberration
+        offset={new Vector2(0.0008, 0.0008)}
+        radialModulation={true}
+        modulationOffset={0.4}
       />
 
       {/* Anti-aliasing pass for crisp edges */}

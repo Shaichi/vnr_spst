@@ -4,11 +4,13 @@ import { useState } from "react";
 import { useStore } from "@/store/useStore";
 import { ROOMS, ARTIFACTS } from "@/data/museumData";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Play, BookOpen, Volume2, VolumeX, Minus, Plus, HelpCircle, CheckCircle2 } from "lucide-react";
+import { X, Play, BookOpen, Volume2, VolumeX, Minus, Plus, HelpCircle, CheckCircle2, Moon, Sun, Award, Sparkles } from "lucide-react";
+import { soundFx } from "@/utils/soundEffects";
 
 export default function OverlayUI() {
   const [isListOpen, setIsListOpen] = useState(false);
   const [activeHintId, setActiveHintId] = useState<string | null>(null);
+  const [showBadgeModal, setShowBadgeModal] = useState(false);
 
   const activeRoomId = useStore((state) => state.activeRoomId);
   const setActiveRoom = useStore((state) => state.setActiveRoom);
@@ -17,6 +19,8 @@ export default function OverlayUI() {
   const visitedArtifactIds = useStore((state) => state.visitedArtifactIds);
   const isMuted = useStore((state) => state.isMuted);
   const toggleMute = useStore((state) => state.toggleMute);
+  const isNightMode = useStore((state) => state.isNightMode);
+  const toggleNightMode = useStore((state) => state.toggleNightMode);
   const zoomPercentage = useStore((state) => state.zoomPercentage);
   const zoomIn = useStore((state) => state.zoomIn);
   const zoomOut = useStore((state) => state.zoomOut);
@@ -24,18 +28,31 @@ export default function OverlayUI() {
   const activeArtifact = activeArtifactId ? ARTIFACTS.find((a) => a.id === activeArtifactId) : null;
   const currentRoom = ROOMS.find((r) => r.id === activeRoomId) || ROOMS[0];
 
+  const allVisited = visitedArtifactIds.length === ARTIFACTS.length;
   const formattedCounter = `${String(visitedArtifactIds.length).padStart(2, "0")}/${String(ARTIFACTS.length).padStart(2, "0")}`;
 
   const handleHintClick = (artifactId: string, roomId: string) => {
+    if (!isMuted) soundFx.playWoodClick();
     setActiveHintId(activeHintId === artifactId ? null : artifactId);
     setActiveRoom(roomId);
+  };
+
+  const handleRoomClick = (roomId: string) => {
+    if (!isMuted) soundFx.playWhoosh();
+    setActiveRoom(roomId);
+  };
+
+  const handleArtifactSelect = (artifactId: string, roomId?: string) => {
+    if (!isMuted) soundFx.playBrassChime();
+    if (roomId) setActiveRoom(roomId);
+    setActiveArtifact(artifactId);
   };
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10 p-4 md:p-6 flex flex-col justify-between select-none">
       {/* Top Header Bar */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-        {/* Top-Left Pill / Expandable Checklist Dropdown (Matches reference image) */}
+        {/* Top-Left Pill / Expandable Checklist Dropdown */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -49,7 +66,10 @@ export default function OverlayUI() {
               </span>
             </div>
             <button
-              onClick={() => setIsListOpen(!isListOpen)}
+              onClick={() => {
+                if (!isMuted) soundFx.playWoodClick();
+                setIsListOpen(!isListOpen);
+              }}
               className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-lg text-xs font-mono font-bold tracking-widest text-yellow-400 border border-white/10 shrink-0"
               title={isListOpen ? "Thu gọn danh sách" : "Mở danh sách hiện vật"}
             >
@@ -58,7 +78,7 @@ export default function OverlayUI() {
             </button>
           </div>
 
-          {/* Expandable Artifact Checklist (Matches reference dropdown image) */}
+          {/* Expandable Artifact Checklist */}
           <AnimatePresence>
             {isListOpen && (
               <motion.div
@@ -76,12 +96,10 @@ export default function OverlayUI() {
                   return (
                     <div key={artifact.id} className="flex flex-col px-4 py-2.5 hover:bg-white/5 transition-colors">
                       <div className="flex items-center justify-between gap-2">
-                        {/* Left Side: Title or ??? */}
                         <div
                           onClick={() => {
                             if (isVisited) {
-                              setActiveArtifact(artifact.id);
-                              setActiveRoom(artifact.roomId);
+                              handleArtifactSelect(artifact.id, artifact.roomId);
                             }
                           }}
                           className={`flex items-center gap-2 cursor-pointer ${
@@ -96,7 +114,6 @@ export default function OverlayUI() {
                           <span>{isVisited ? artifact.title : "???"}</span>
                         </div>
 
-                        {/* Right Side: Hint Button for Unvisited Items */}
                         {!isVisited && (
                           <button
                             onClick={() => handleHintClick(artifact.id, artifact.roomId)}
@@ -108,7 +125,6 @@ export default function OverlayUI() {
                         )}
                       </div>
 
-                      {/* Expanded Hint Info */}
                       {showHint && !isVisited && (
                         <div className="mt-1.5 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded text-[11px] text-yellow-200">
                           💡 <strong>Gợi ý:</strong> Nằm tại <strong className="underline">{room?.name}</strong>. Hãy di chuyển sang phòng này để tìm kiếm!
@@ -117,16 +133,30 @@ export default function OverlayUI() {
                     </div>
                   );
                 })}
+
+                {/* All items unlocked congrats banner inside checklist */}
+                {allVisited && (
+                  <div
+                    onClick={() => {
+                      if (!isMuted) soundFx.playBrassChime();
+                      setShowBadgeModal(true);
+                    }}
+                    className="p-3 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-300 text-center font-bold flex items-center justify-center gap-2 cursor-pointer hover:bg-yellow-500/30 transition-colors"
+                  >
+                    <Award size={16} />
+                    <span>Xem Bằng Chứng Nhận Sưu Tập Báu Vật (15/15)!</span>
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
         </motion.div>
 
-        {/* Top-Right: Sound Toggle & Room Navigation */}
+        {/* Top-Right: Night Mode Toggle, Sound Toggle & Room Navigation */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="pointer-events-auto flex items-center gap-2"
+          className="pointer-events-auto flex items-center gap-2 flex-wrap"
         >
           {/* Room Navigation Pill */}
           <div className="flex items-center gap-1 bg-black/80 backdrop-blur-lg p-1.5 rounded-full border border-white/10 shadow-xl">
@@ -135,7 +165,7 @@ export default function OverlayUI() {
               return (
                 <button
                   key={room.id}
-                  onClick={() => setActiveRoom(room.id)}
+                  onClick={() => handleRoomClick(room.id)}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${
                     isActive
                       ? "bg-red-700 text-white shadow-md scale-105"
@@ -148,9 +178,24 @@ export default function OverlayUI() {
             })}
           </div>
 
-          {/* Sound Toggle (Matches reference top right) */}
+          {/* Night Mode Toggle */}
           <button
-            onClick={toggleMute}
+            onClick={() => {
+              if (!isMuted) soundFx.playWoodClick();
+              toggleNightMode();
+            }}
+            className="flex items-center gap-1.5 bg-black/80 backdrop-blur-lg px-3.5 py-2 rounded-full border border-white/10 text-xs font-semibold text-white hover:bg-white/10 transition-colors shadow-xl"
+            title="Chuyển đổi Chế độ Ban Ngày / Ban Đêm"
+          >
+            {isNightMode ? <Moon size={14} className="text-indigo-400" /> : <Sun size={14} className="text-amber-400" />}
+            <span>{isNightMode ? "Đêm" : "Ngày"}</span>
+          </button>
+
+          {/* Sound Toggle */}
+          <button
+            onClick={() => {
+              toggleMute();
+            }}
             className="flex items-center gap-2 bg-black/80 backdrop-blur-lg px-3.5 py-2 rounded-full border border-white/10 text-xs font-semibold text-white hover:bg-white/10 transition-colors shadow-xl"
           >
             {isMuted ? <VolumeX size={14} className="text-red-400" /> : <Volume2 size={14} className="text-green-400" />}
@@ -175,7 +220,10 @@ export default function OverlayUI() {
                   Năm {activeArtifact.year}
                 </span>
                 <button
-                  onClick={() => setActiveArtifact(null)}
+                  onClick={() => {
+                    if (!isMuted) soundFx.playWoodClick();
+                    setActiveArtifact(null);
+                  }}
                   className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
                 >
                   <X size={18} />
@@ -194,7 +242,12 @@ export default function OverlayUI() {
 
             {/* Actions */}
             <div className="flex flex-col gap-2 pt-4 border-t border-white/10">
-              <button className="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-600 transition-colors py-2.5 rounded-xl font-semibold text-xs uppercase tracking-wider text-white">
+              <button
+                onClick={() => {
+                  if (!isMuted) soundFx.playBrassChime();
+                }}
+                className="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-600 transition-colors py-2.5 rounded-xl font-semibold text-xs uppercase tracking-wider text-white"
+              >
                 <Play size={14} /> Thuyết Minh Âm Thanh
               </button>
               <button className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 transition-colors py-2.5 rounded-xl font-semibold text-xs uppercase tracking-wider text-white">
@@ -202,6 +255,49 @@ export default function OverlayUI() {
               </button>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Achievement Badge Modal when finding 15/15 Artifacts */}
+      <AnimatePresence>
+        {showBadgeModal && (
+          <div className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-gradient-to-b from-gray-900 via-black to-red-950 border-2 border-yellow-500/50 rounded-3xl p-8 max-w-md w-full text-center text-white shadow-2xl relative overflow-hidden"
+            >
+              <button
+                onClick={() => setShowBadgeModal(false)}
+                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="mx-auto w-20 h-20 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center mb-4 text-yellow-400 animate-pulse">
+                <Award size={44} />
+              </div>
+
+              <h2 className="text-2xl font-bold font-serif text-yellow-300 mb-2">
+                BẮNG CHỨNG NHẬN HOÀN THÀNH
+              </h2>
+              <p className="text-xs text-yellow-400/80 font-mono uppercase tracking-widest mb-4">
+                Bảo Tàng Lịch Sử Đảng Cộng Sản Việt Nam
+              </p>
+
+              <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+                Chúc mừng bạn đã xuất sắc tìm thấy và khám phá trọn vẹn <strong className="text-yellow-400">15/15 Báu Vật Lịch Sử</strong> quý giá!
+              </p>
+
+              <button
+                onClick={() => setShowBadgeModal(false)}
+                className="w-full py-3 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-bold rounded-xl text-sm transition-all shadow-lg"
+              >
+                Tiếp Tục Tham Quan
+              </button>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
@@ -213,7 +309,10 @@ export default function OverlayUI() {
           className="pointer-events-auto flex items-center gap-3 bg-black/80 backdrop-blur-lg px-4 py-1.5 rounded-full border border-white/10 text-white text-xs shadow-xl"
         >
           <button
-            onClick={zoomOut}
+            onClick={() => {
+              if (!isMuted) soundFx.playWoodClick();
+              zoomOut();
+            }}
             className="p-1 hover:text-yellow-400 transition-colors text-gray-300"
             title="Thu nhỏ"
           >
@@ -223,7 +322,10 @@ export default function OverlayUI() {
             {zoomPercentage}%
           </span>
           <button
-            onClick={zoomIn}
+            onClick={() => {
+              if (!isMuted) soundFx.playWoodClick();
+              zoomIn();
+            }}
             className="p-1 hover:text-yellow-400 transition-colors text-gray-300"
             title="Phóng to"
           >

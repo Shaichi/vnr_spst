@@ -38,14 +38,13 @@ function CameraController() {
       const [x, y, z] = activeArtifact.position;
       const isMonument = activeArtifact.type === 'monument';
 
-      // Position camera to the right (+1.8), aiming towards targetX (x - 0.3)
-      // This places the artifact nicely in the left 50% of the screen, away from the right side modal!
-      const camX = x + 1.8;
-      const camY = isMonument ? y + 2.2 : y + 1.4;
-      const camZ = isMonument ? z + 6.5 : z + 4.8;
+      // Position camera closer to object (camZ closer, camX offset for right modal)
+      const camX = isMonument ? x + 1.3 : x + 1.1;
+      const camY = isMonument ? y + 1.6 : y + 0.95;
+      const camZ = isMonument ? z + 4.6 : z + 2.9;
 
-      const targetX = x - 0.3;
-      const targetY = isMonument ? y + 1.2 : y + 0.7;
+      const targetX = x - 0.25;
+      const targetY = isMonument ? y + 1.1 : y + 0.55;
 
       controlsRef.current.setLookAt(
         camX, camY, camZ,
@@ -406,6 +405,7 @@ function ArtifactShape({ artifact }: { artifact: ArtifactData }) {
 function ArtifactSpotlight({ position }: { position: [number, number, number] }) {
   const lightRef = useRef<THREE.SpotLight>(null);
   const targetRef = useRef<THREE.Object3D>(null);
+  const isNightMode = useStore((state) => state.isNightMode);
 
   useEffect(() => {
     if (lightRef.current && targetRef.current) {
@@ -446,7 +446,7 @@ function ArtifactSpotlight({ position }: { position: [number, number, number] })
           transparent
           depthWrite={false}
           blending={THREE.AdditiveBlending}
-          uOpacity={0.09}
+          uOpacity={isNightMode ? 0.18 : 0.09}
           uColor={new THREE.Color("#ffb855")}
         />
       </mesh>
@@ -456,7 +456,7 @@ function ArtifactSpotlight({ position }: { position: [number, number, number] })
         position={[0, -0.4, 0]}
         angle={0.4}
         penumbra={0.6}
-        intensity={400}
+        intensity={isNightMode ? 750 : 400}
         decay={2}
         distance={25}
         color="#ffcc88"
@@ -767,6 +767,9 @@ function MuseumArchitecture() {
 
 export default function Experience() {
   const setActiveArtifact = useStore((state) => state.setActiveArtifact);
+  const isNightMode = useStore((state) => state.isNightMode);
+
+  const bg = isNightMode ? "#050302" : "#0c0806";
 
   return (
     <Canvas
@@ -775,23 +778,23 @@ export default function Experience() {
       gl={{
         antialias: true,
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 0.85,
+        toneMappingExposure: isNightMode ? 0.7 : 0.85,
       }}
       onPointerMissed={() => setActiveArtifact(null)}
     >
-      <color attach="background" args={["#0c0806"]} />
-      <fog attach="fog" args={["#0c0806", 45, 120]} />
+      <color attach="background" args={[bg]} />
+      <fog attach="fog" args={[bg, isNightMode ? 25 : 45, isNightMode ? 100 : 120]} />
 
       <Suspense fallback={null}>
         {/* Environment Map */}
-        <Environment preset="sunset" />
+        <Environment preset={isNightMode ? "night" : "sunset"} />
 
-        {/* Global Lights - Balanced Warm Studio Lighting with Clear Shadows */}
-        <ambientLight intensity={0.25} color="#fff0db" />
-        <hemisphereLight intensity={0.35} color="#ffcc88" groundColor="#2a1a0f" />
+        {/* Global Lights - Dynamic Day / Night Exhibition Mode */}
+        <ambientLight intensity={isNightMode ? 0.08 : 0.25} color="#fff0db" />
+        <hemisphereLight intensity={isNightMode ? 0.12 : 0.35} color="#ffcc88" groundColor="#150a04" />
         <directionalLight
           position={[0, 22, 18]}
-          intensity={1.2}
+          intensity={isNightMode ? 0.35 : 1.2}
           color="#fff2db"
           castShadow
           shadow-mapSize={[2048, 2048]}
@@ -804,12 +807,12 @@ export default function Experience() {
           shadow-bias={-0.0001}
           shadow-normalBias={0.01}
         />
-        <directionalLight position={[-15, 15, -15]} intensity={0.3} color="#ffe4cc" />
+        <directionalLight position={[-15, 15, -15]} intensity={isNightMode ? 0.15 : 0.3} color="#ffe4cc" />
 
         {/* Layer 1: Hạt sương mạ vàng lơ lửng lung linh (Gold Dust Sparkles) */}
-        <Sparkles count={600} scale={[65, 24, 65]} size={3.2} speed={0.25} color="#ffd700" opacity={0.7} />
+        <Sparkles count={isNightMode ? 800 : 600} scale={[65, 24, 65]} size={isNightMode ? 4.0 : 3.2} speed={0.25} color="#ffd700" opacity={isNightMode ? 0.85 : 0.7} />
         {/* Layer 2: Hạt đom đốm cam ấm lơ lửng tầng thấp (Warm Amber Embers) */}
-        <Sparkles count={350} scale={[45, 14, 45]} size={4.5} speed={0.4} color="#ff9933" opacity={0.5} />
+        <Sparkles count={isNightMode ? 500 : 350} scale={[45, 14, 45]} size={isNightMode ? 5.5 : 4.5} speed={0.4} color="#ff9933" opacity={isNightMode ? 0.75 : 0.5} />
         {/* Layer 3: Hạt kim tuyến ánh bạc lấp lánh tầng cao (Silver Light Dust) */}
         <Sparkles count={250} scale={[55, 20, 55]} size={2.0} speed={0.15} color="#ffffff" opacity={0.4} />
 

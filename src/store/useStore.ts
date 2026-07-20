@@ -6,6 +6,7 @@ interface AppState {
   activeArtifactId: string | null;
   visitedArtifactIds: string[];
   isMuted: boolean;
+  isNightMode: boolean;
   zoomPercentage: number;
   
   // Computed getters
@@ -17,6 +18,7 @@ interface AppState {
   setActiveArtifact: (artifactId: string | null) => void;
   markArtifactVisited: (artifactId: string) => void;
   toggleMute: () => void;
+  toggleNightMode: () => void;
   zoomIn: () => void;
   zoomOut: () => void;
 }
@@ -26,6 +28,7 @@ export const useStore = create<AppState>((set, get) => ({
   activeArtifactId: null,
   visitedArtifactIds: [],
   isMuted: false,
+  isNightMode: false,
   zoomPercentage: 100,
 
   getCurrentRoom: () => {
@@ -66,6 +69,10 @@ export const useStore = create<AppState>((set, get) => ({
 
   toggleMute: () => {
     set((state) => ({ isMuted: !state.isMuted }));
+  },
+
+  toggleNightMode: () => {
+    set((state) => ({ isNightMode: !state.isNightMode }));
   },
 
   zoomIn: () => {
