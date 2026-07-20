@@ -36,9 +36,20 @@ function CameraController() {
 
     if (activeArtifact) {
       const [x, y, z] = activeArtifact.position;
+      const isMonument = activeArtifact.type === 'monument';
+
+      // Position camera to the right (+1.8), aiming towards targetX (x - 0.3)
+      // This places the artifact nicely in the left 50% of the screen, away from the right side modal!
+      const camX = x + 1.8;
+      const camY = isMonument ? y + 2.2 : y + 1.4;
+      const camZ = isMonument ? z + 6.5 : z + 4.8;
+
+      const targetX = x - 0.3;
+      const targetY = isMonument ? y + 1.2 : y + 0.7;
+
       controlsRef.current.setLookAt(
-        x, y + 1.2, z + 3,
-        x, y + 0.5, z,
+        camX, camY, camZ,
+        targetX, targetY, z,
         true
       );
     } else {
@@ -605,10 +616,22 @@ function MuseumArchitecture() {
     <group>
       {/* Tường bao quanh tòa nhà */}
       <PerimeterWalls />
-      {/* Sàn đá/gỗ cao cấp (Procedural Marble Floor Shader) */}
+      {/* Sàn đá/gỗ cao cấp với hiệu ứng Phản Chiếu Mờ Thời Gian Thực (MeshReflectorMaterial) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
         <planeGeometry args={[100, 100]} />
-        <marbleFloorMaterial uScale={2.0} uColorBase={new THREE.Color("#16100c")} uColorVein={new THREE.Color("#4a3b2c")} uColorHighlight={new THREE.Color("#281c14")} />
+        <MeshReflectorMaterial
+          blur={[300, 100]}
+          resolution={1024}
+          mirror={0.4}
+          mixBlur={0.8}
+          mixStrength={1.5}
+          roughness={0.6}
+          depthScale={1.2}
+          minDepthThreshold={0.4}
+          maxDepthThreshold={1.4}
+          color="#1c1410"
+          metalness={0.2}
+        />
       </mesh>
 
       {/* Hoa văn sàn trung tâm (Lotus Grid) */}
@@ -660,36 +683,7 @@ function MuseumArchitecture() {
       <WallWithDoor position={[0, 0, -8]} rotation={[0, 0, 0]} width={24} doorWidth={8} /> {/* Sảnh Chính ra Phòng 2 */}
       <WallWithDoor position={[22, 0, -8]} rotation={[0, 0, 0]} width={20} /> {/* Phòng 3 ra Phòng 2 */}
 
-      {/* Node Tương tác chuyển phòng trên thảm */}
-      {ROOMS.map((room) => {
-        const [x, , z] = room.targetPosition;
-        const isActive = activeRoomId === room.id;
 
-        return (
-          <group key={room.id} position={[x, -0.97, z]}>
-            <mesh 
-              rotation={[-Math.PI / 2, 0, 0]}
-              onClick={() => setActiveRoom(room.id)}
-              onPointerOver={() => { document.body.style.cursor = 'pointer'; }}
-              onPointerOut={() => { document.body.style.cursor = 'default'; }}
-            >
-              <circleGeometry args={[isActive ? 5 : 4, 32]} />
-              <meshBasicMaterial color={isActive ? "#ffd700" : "#ff4444"} transparent opacity={isActive ? 0.05 : 0} />
-            </mesh>
-
-            <Text
-              position={[0, 0.05, 5]}
-              rotation={[-Math.PI / 2, 0, 0]}
-              fontSize={0.5}
-              color={isActive ? "#ffd700" : "#888888"}
-              anchorX="center"
-              font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf"
-            >
-              {room.name}
-            </Text>
-          </group>
-        );
-      })}
     </group>
   );
 }
@@ -701,6 +695,11 @@ export default function Experience() {
     <Canvas
       shadows
       camera={{ position: [0, 5.5, 28], fov: 55 }}
+      gl={{
+        antialias: true,
+        toneMapping: THREE.ACESFilmicToneMapping,
+        toneMappingExposure: 0.85,
+      }}
       onPointerMissed={() => setActiveArtifact(null)}
     >
       <color attach="background" args={["#0c0806"]} />
@@ -710,11 +709,11 @@ export default function Experience() {
         {/* Environment Map */}
         <Environment preset="sunset" />
 
-        {/* Global Lights - Warmer and brighter for all rooms */}
-        <ambientLight intensity={1.0} color="#fff0db" />
-        <hemisphereLight intensity={0.6} color="#ffcc88" groundColor="#2a1a0f" />
-        <directionalLight position={[20, 30, 20]} intensity={1.2} color="#ffebcc" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0001} />
-        <directionalLight position={[-20, 25, -20]} intensity={0.8} color="#ffe4cc" />
+        {/* Global Lights - Balanced Warm Studio Lighting */}
+        <ambientLight intensity={0.35} color="#fff0db" />
+        <hemisphereLight intensity={0.4} color="#ffcc88" groundColor="#2a1a0f" />
+        <directionalLight position={[20, 30, 20]} intensity={0.7} color="#ffebcc" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0001} />
+        <directionalLight position={[-20, 25, -20]} intensity={0.4} color="#ffe4cc" />
 
         {/* Hạt sương/bụi mạ vàng lơ lửng */}
         <Sparkles count={500} scale={40} size={2.5} speed={0.2} color="#ffd700" opacity={0.6} />

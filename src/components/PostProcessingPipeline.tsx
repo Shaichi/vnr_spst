@@ -5,10 +5,10 @@ import { EffectComposer, Bloom, Vignette, SMAA } from "@react-three/postprocessi
 export default function PostProcessingPipeline() {
   return (
     <EffectComposer multisampling={0}>
-      {/* Subtle Bloom glow for lights and gold accents without blurring objects */}
+      {/* Subtle Bloom glow for gold highlights */}
       <Bloom
-        intensity={0.15}
-        luminanceThreshold={0.9}
+        intensity={0.1}
+        luminanceThreshold={0.92}
         luminanceSmoothing={0.9}
         mipmapBlur
       />
