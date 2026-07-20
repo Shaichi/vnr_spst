@@ -8,6 +8,7 @@ interface AppState {
   isMuted: boolean;
   isNightMode: boolean;
   zoomPercentage: number;
+  isTourMode: boolean;
   
   // Computed getters
   getCurrentRoom: () => RoomData;
@@ -21,6 +22,7 @@ interface AppState {
   toggleNightMode: () => void;
   zoomIn: () => void;
   zoomOut: () => void;
+  setTourMode: (isTour: boolean) => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -30,6 +32,7 @@ export const useStore = create<AppState>((set, get) => ({
   isMuted: false,
   isNightMode: false,
   zoomPercentage: 100,
+  isTourMode: false,
 
   getCurrentRoom: () => {
     const { activeRoomId } = get();
@@ -81,5 +84,9 @@ export const useStore = create<AppState>((set, get) => ({
 
   zoomOut: () => {
     set((state) => ({ zoomPercentage: Math.max(state.zoomPercentage - 15, 60) }));
+  },
+
+  setTourMode: (isTour: boolean) => {
+    set({ isTourMode: isTour });
   },
 }));

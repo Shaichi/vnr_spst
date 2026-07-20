@@ -26,7 +26,36 @@ function CameraController() {
   const activeRoomId = useStore((state) => state.activeRoomId);
   const activeArtifactId = useStore((state) => state.activeArtifactId);
   const zoomPercentage = useStore((state) => state.zoomPercentage);
+  const isTourMode = useStore((state) => state.isTourMode);
+  const setActiveArtifact = useStore((state) => state.setActiveArtifact);
+  const setActiveRoom = useStore((state) => state.setActiveRoom);
+  const setTourMode = useStore((state) => state.setTourMode);
   const controlsRef = useRef<any>(null);
+
+  // Tour logic
+  useEffect(() => {
+    if (!isTourMode) return;
+
+    let currentIdx = 0;
+
+    // Bắt đầu tour ngay lập tức với artifact đầu tiên
+    setActiveRoom(ARTIFACTS[0].roomId);
+    setActiveArtifact(ARTIFACTS[0].id);
+
+    const interval = setInterval(() => {
+      currentIdx++;
+      if (currentIdx >= ARTIFACTS.length) {
+        setTourMode(false);
+        clearInterval(interval);
+        return;
+      }
+      const nextArtifact = ARTIFACTS[currentIdx];
+      setActiveRoom(nextArtifact.roomId);
+      setActiveArtifact(nextArtifact.id);
+    }, 7000); // 7 seconds per artifact
+
+    return () => clearInterval(interval);
+  }, [isTourMode, setActiveArtifact, setActiveRoom, setTourMode]);
 
   useEffect(() => {
     if (!controlsRef.current) return;
@@ -774,6 +803,7 @@ export default function Experience() {
   return (
     <Canvas
       shadows={{ type: THREE.PCFSoftShadowMap }}
+      dpr={[1, 1.5]}
       camera={{ position: [0, 5.5, 28], fov: 55 }}
       gl={{
         antialias: true,
