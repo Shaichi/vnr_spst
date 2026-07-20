@@ -10,7 +10,7 @@ export default function BstBacHo({ position = [0, 0, 0], rotation = [0, 0, 0] }:
       {/* Bệ đỡ mô hình phụ */}
       <mesh position={[0, 0.5, 0]} castShadow receiveShadow>
          <cylinderGeometry args={[0.8, 0.9, 1, 32]} />
-         <meshStandardMaterial color="#f0f0f0" roughness={0.9} />
+         <meshStandardMaterial color="#5c3a21" roughness={0.7} metalness={0.2} />
       </mesh>
       
       {/* Dùng thẻ Center để tự động đặt mô hình vừa vặn lên bệ (Y=1) */}

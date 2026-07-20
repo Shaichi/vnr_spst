@@ -4,6 +4,9 @@ import { ARTIFACTS, ROOMS, ArtifactData, RoomData } from '@/data/museumData';
 interface AppState {
   activeRoomId: string;
   activeArtifactId: string | null;
+  visitedArtifactIds: string[];
+  isMuted: boolean;
+  zoomPercentage: number;
   
   // Computed getters
   getCurrentRoom: () => RoomData;
@@ -12,11 +15,18 @@ interface AppState {
   // Actions
   setActiveRoom: (roomId: string) => void;
   setActiveArtifact: (artifactId: string | null) => void;
+  markArtifactVisited: (artifactId: string) => void;
+  toggleMute: () => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
   activeRoomId: 'main-hall',
   activeArtifactId: null,
+  visitedArtifactIds: [],
+  isMuted: false,
+  zoomPercentage: 100,
 
   getCurrentRoom: () => {
     const { activeRoomId } = get();
@@ -34,6 +44,35 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   setActiveArtifact: (artifactId) => {
+    if (artifactId) {
+      const { visitedArtifactIds } = get();
+      if (!visitedArtifactIds.includes(artifactId)) {
+        set({
+          activeArtifactId: artifactId,
+          visitedArtifactIds: [...visitedArtifactIds, artifactId],
+        });
+        return;
+      }
+    }
     set({ activeArtifactId: artifactId });
+  },
+
+  markArtifactVisited: (artifactId) => {
+    const { visitedArtifactIds } = get();
+    if (!visitedArtifactIds.includes(artifactId)) {
+      set({ visitedArtifactIds: [...visitedArtifactIds, artifactId] });
+    }
+  },
+
+  toggleMute: () => {
+    set((state) => ({ isMuted: !state.isMuted }));
+  },
+
+  zoomIn: () => {
+    set((state) => ({ zoomPercentage: Math.min(state.zoomPercentage + 15, 160) }));
+  },
+
+  zoomOut: () => {
+    set((state) => ({ zoomPercentage: Math.max(state.zoomPercentage - 15, 60) }));
   },
 }));

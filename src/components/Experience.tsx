@@ -14,12 +14,18 @@ import DetailedSandals from "./models/DetailedSandals";
 import DetailedMonument from "./models/DetailedMonument";
 import BstBacHo from "./models/BstBacHo";
 
+import PostProcessingPipeline from "./PostProcessingPipeline";
+import "@/components/shaders/MarbleFloorShader";
+import "@/components/shaders/VolumetricLightShader";
+import "@/components/shaders/GoldenAuraMaterial";
+
 // ==========================================
 // CAMERA CONTROLLER
 // ==========================================
 function CameraController() {
   const activeRoomId = useStore((state) => state.activeRoomId);
   const activeArtifactId = useStore((state) => state.activeArtifactId);
+  const zoomPercentage = useStore((state) => state.zoomPercentage);
   const controlsRef = useRef<any>(null);
 
   useEffect(() => {
@@ -30,11 +36,10 @@ function CameraController() {
 
     if (activeArtifact) {
       const [x, y, z] = activeArtifact.position;
-      // Offset slightly to view the artifact majestically
       controlsRef.current.setLookAt(
-        x, y + 1.2, z + 3, // Cam pos
-        x, y + 0.5, z,     // Look at pos
-        true               // Enable smooth transition
+        x, y + 1.2, z + 3,
+        x, y + 0.5, z,
+        true
       );
     } else {
       const [cx, cy, cz] = currentRoom.cameraPosition;
@@ -47,13 +52,20 @@ function CameraController() {
     }
   }, [activeRoomId, activeArtifactId]);
 
+  useEffect(() => {
+    if (!controlsRef.current) return;
+    const zoomFactor = zoomPercentage / 100;
+    controlsRef.current.zoomTo(zoomFactor, true);
+  }, [zoomPercentage]);
+
   return (
     <CameraControls
       ref={controlsRef}
       makeDefault
-      maxPolarAngle={Math.PI / 2 - 0.02}
-      minDistance={1.5}
-      maxDistance={25}
+      maxPolarAngle={Math.PI / 2 - 0.1}
+      minPolarAngle={Math.PI / 3.6}
+      minDistance={1.8}
+      maxDistance={16}
     />
   );
 }
@@ -192,19 +204,19 @@ function SteppedPodium({ position }: { position: [number, number, number] }) {
     <group position={position}>
       <mesh position={[0, -0.85, 0]} receiveShadow>
         <cylinderGeometry args={[6, 6.2, 0.3, 64]} />
-        <meshStandardMaterial color="#d0d0d0" roughness={0.4} metalness={0.1} />
+        <meshStandardMaterial color="#3a281d" roughness={0.6} metalness={0.1} />
       </mesh>
       <mesh position={[0, -0.55, 0]} receiveShadow>
         <cylinderGeometry args={[5, 5.2, 0.3, 64]} />
-        <meshStandardMaterial color="#e0e0e0" roughness={0.4} metalness={0.1} />
+        <meshStandardMaterial color="#5c4230" roughness={0.6} metalness={0.1} />
       </mesh>
       <mesh position={[0, -0.25, 0]} receiveShadow>
         <cylinderGeometry args={[4, 4.2, 0.3, 64]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.4} metalness={0.1} />
+        <meshStandardMaterial color="#7a5a44" roughness={0.6} metalness={0.1} />
       </mesh>
       <mesh position={[0, -0.09, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[3.8, 4, 64]} />
-        <meshStandardMaterial color="#ffd700" metalness={1} roughness={0.1} />
+        <meshStandardMaterial color="#ffd700" metalness={0.9} roughness={0.1} />
       </mesh>
     </group>
   );
@@ -377,9 +389,9 @@ function ArtifactSpotlight({ position }: { position: [number, number, number] })
         position={[0, -0.4, 0]}
         angle={0.4}
         penumbra={0.6}
-        intensity={600}
+        intensity={400}
         decay={2}
-        distance={30}
+        distance={25}
         color="#ffcc88"
       />
       <object3D ref={targetRef} position={[0, -20, 0]} />
@@ -391,23 +403,30 @@ function PedestalArtifact({ artifact }: { artifact: ArtifactData }) {
   const [hovered, setHovered] = useState(false);
   const activeArtifactId = useStore((state) => state.activeArtifactId);
   const setActiveArtifact = useStore((state) => state.setActiveArtifact);
-  const isSelected = activeArtifactId === artifact.id;
+  const visitedArtifactIds = useStore((state) => state.visitedArtifactIds);
 
-  // Nếu là sảnh chính (monument), dùng Bậc Tam Cấp thay vì bục nhỏ
+  const isSelected = activeArtifactId === artifact.id;
+  const isVisited = visitedArtifactIds.includes(artifact.id);
   const isMonument = artifact.type === 'monument';
 
   return (
     <group position={artifact.position}>
+      {!isVisited && (
+        <mesh position={[0, isMonument ? 0.1 : 0.3, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[1.0, 1.2, 32]} />
+          <meshBasicMaterial color="#ffd700" transparent opacity={0.85} />
+        </mesh>
+      )}
       {!isMonument ? (
         <>
           {/* Grand Pedestal */}
           <mesh position={[0, -0.4, 0]} receiveShadow castShadow>
             <boxGeometry args={[1.5, 1.2, 1.5]} />
-            <meshStandardMaterial color="#ffffff" roughness={0.5} metalness={0.1} />
+            <meshStandardMaterial color="#cbbba8" roughness={0.6} metalness={0.1} />
           </mesh>
           <mesh position={[0, -0.9, 0]} receiveShadow castShadow>
             <boxGeometry args={[1.8, 0.2, 1.8]} />
-            <meshStandardMaterial color="#e0e0e0" roughness={0.7} />
+            <meshStandardMaterial color="#8c7865" roughness={0.7} />
           </mesh>
           <mesh position={[0, 0.22, 0]}>
             <boxGeometry args={[1.6, 0.08, 1.6]} />
@@ -463,8 +482,8 @@ function PedestalArtifact({ artifact }: { artifact: ArtifactData }) {
         </Text>
       </group>
 
-      {/* Đèn chiếu rọi riêng cho từng hiện vật (treo từ trần xuống) */}
-      <ArtifactSpotlight position={[0, 17, 0]} />
+      {/* Đèn chiếu rọi riêng cho từng hiện vật (treo từ trần nhà xuống) */}
+      <ArtifactSpotlight position={[0, 12, 0]} />
     </group>
   );
 }
@@ -474,23 +493,23 @@ function PerimeterWalls() {
   return (
     <group>
       {/* Tường phía sau (Back Wall) */}
-      <mesh position={[0, 10, -32]} receiveShadow>
-        <boxGeometry args={[64, 24, 1]} />
+      <mesh position={[0, 5.5, -32]} receiveShadow>
+        <boxGeometry args={[64, 13, 1]} />
         <meshStandardMaterial color="#e8d5b5" roughness={0.9} />
       </mesh>
       {/* Tường phía trước (Front Wall) */}
-      <mesh position={[0, 10, 32]} receiveShadow>
-        <boxGeometry args={[64, 24, 1]} />
+      <mesh position={[0, 5.5, 32]} receiveShadow>
+        <boxGeometry args={[64, 13, 1]} />
         <meshStandardMaterial color="#e8d5b5" roughness={0.9} />
       </mesh>
       {/* Tường bên trái (Left Wall) */}
-      <mesh position={[-32, 10, 0]} receiveShadow>
-        <boxGeometry args={[1, 24, 64]} />
+      <mesh position={[-32, 5.5, 0]} receiveShadow>
+        <boxGeometry args={[1, 13, 64]} />
         <meshStandardMaterial color="#e8d5b5" roughness={0.9} />
       </mesh>
       {/* Tường bên phải (Right Wall) */}
-      <mesh position={[32, 10, 0]} receiveShadow>
-        <boxGeometry args={[1, 24, 64]} />
+      <mesh position={[32, 5.5, 0]} receiveShadow>
+        <boxGeometry args={[1, 13, 64]} />
         <meshStandardMaterial color="#e8d5b5" roughness={0.9} />
       </mesh>
 
@@ -530,31 +549,31 @@ function PerimeterWalls() {
          <meshStandardMaterial color="#ffd700" metalness={0.8} roughness={0.2} />
       </mesh>
 
-      {/* Trần nhà chính (Main Ceiling) */}
-      <mesh position={[0, 22, 0]} receiveShadow castShadow>
-        <boxGeometry args={[64, 1, 64]} />
-        <meshStandardMaterial color="#1a110a" roughness={0.9} />
+      {/* Trần nhà chính (Architectural Museum Ceiling with Warm Glow) */}
+      <mesh position={[0, 12.0, 0]} receiveShadow>
+        <boxGeometry args={[64, 0.5, 64]} />
+        <meshStandardMaterial color="#5a402d" roughness={0.7} emissive="#2b1a0d" emissiveIntensity={0.2} />
       </mesh>
       {/* Phào vòm trần (Ceiling Cornice) */}
-      <mesh position={[0, 21.4, 0]}>
+      <mesh position={[0, 11.7, 0]}>
         <boxGeometry args={[62, 0.2, 62]} />
-        <meshStandardMaterial color="#ffd700" metalness={0.6} roughness={0.3} />
+        <meshStandardMaterial color="#ffd700" metalness={0.8} roughness={0.2} />
       </mesh>
-      <mesh position={[0, 21.2, 0]}>
+      <mesh position={[0, 11.5, 0]}>
         <boxGeometry args={[60, 0.2, 60]} />
-        <meshStandardMaterial color="#e8d5b5" roughness={0.8} />
+        <meshStandardMaterial color="#3a2214" roughness={0.8} />
       </mesh>
-      {/* Mạng lưới đèn trần (Grid details on ceiling) */}
+      {/* Mạng lưới dầm gỗ trần cao cấp (Coffered Ceiling Beams) */}
       {[...Array(9)].map((_, i) => (
-        <mesh key={`grid-x-${i}`} position={[-24 + i * 6, 21.45, 0]}>
-          <boxGeometry args={[0.2, 0.1, 64]} />
-          <meshStandardMaterial color="#332211" roughness={0.9} />
+        <mesh key={`grid-x-${i}`} position={[-24 + i * 6, 11.75, 0]}>
+          <boxGeometry args={[0.3, 0.2, 64]} />
+          <meshStandardMaterial color="#4a2c17" roughness={0.8} />
         </mesh>
       ))}
       {[...Array(9)].map((_, i) => (
-        <mesh key={`grid-z-${i}`} position={[0, 21.45, -24 + i * 6]}>
-          <boxGeometry args={[64, 0.1, 0.2]} />
-          <meshStandardMaterial color="#332211" roughness={0.9} />
+        <mesh key={`grid-z-${i}`} position={[0, 11.75, -24 + i * 6]}>
+          <boxGeometry args={[64, 0.2, 0.3]} />
+          <meshStandardMaterial color="#4a2c17" roughness={0.8} />
         </mesh>
       ))}
     </group>
@@ -586,10 +605,10 @@ function MuseumArchitecture() {
     <group>
       {/* Tường bao quanh tòa nhà */}
       <PerimeterWalls />
-      {/* Sàn đá/gỗ cao cấp (Nhám/Bán bóng, không phản chiếu như kính) */}
+      {/* Sàn đá/gỗ cao cấp (Procedural Marble Floor Shader) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
         <planeGeometry args={[100, 100]} />
-        <meshStandardMaterial color="#1c120c" roughness={0.7} metalness={0.2} />
+        <marbleFloorMaterial uScale={2.0} uColorBase={new THREE.Color("#16100c")} uColorVein={new THREE.Color("#4a3b2c")} uColorHighlight={new THREE.Color("#281c14")} />
       </mesh>
 
       {/* Hoa văn sàn trung tâm (Lotus Grid) */}
@@ -685,16 +704,17 @@ export default function Experience() {
       onPointerMissed={() => setActiveArtifact(null)}
     >
       <color attach="background" args={["#0c0806"]} />
-      <fog attach="fog" args={["#0c0806", 15, 50]} />
+      <fog attach="fog" args={["#0c0806", 45, 120]} />
 
       <Suspense fallback={null}>
         {/* Environment Map */}
         <Environment preset="sunset" />
 
-        {/* Global Lights - Warmer and dimmer */}
-        <ambientLight intensity={0.6} color="#ffd5a8" />
-        <hemisphereLight intensity={0.4} color="#ffcc88" groundColor="#1a0f05" />
-        <directionalLight position={[10, 20, 10]} intensity={1} color="#ffcc88" castShadow shadow-mapSize={[2048, 2048]} />
+        {/* Global Lights - Warmer and brighter for all rooms */}
+        <ambientLight intensity={1.0} color="#fff0db" />
+        <hemisphereLight intensity={0.6} color="#ffcc88" groundColor="#2a1a0f" />
+        <directionalLight position={[20, 30, 20]} intensity={1.2} color="#ffebcc" castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0001} />
+        <directionalLight position={[-20, 25, -20]} intensity={0.8} color="#ffe4cc" />
 
         {/* Hạt sương/bụi mạ vàng lơ lửng */}
         <Sparkles count={500} scale={40} size={2.5} speed={0.2} color="#ffd700" opacity={0.6} />
@@ -707,6 +727,9 @@ export default function Experience() {
 
         {/* Camera */}
         <CameraController />
+
+        {/* Post Processing Pipeline */}
+        <PostProcessingPipeline />
       </Suspense>
     </Canvas>
   );
