@@ -191,7 +191,7 @@ export default function OverlayUI() {
             }`}
           >
             {isTourMode ? <Square size={14} /> : <Play size={14} />}
-            <span>{isTourMode ? "Dừng Tour" : "Start Tour"}</span>
+            <span>{isTourMode ? "Dừng Tour" : "Bắt đầu Tour"}</span>
           </button>
 
           {/* Night Mode Toggle */}
@@ -215,7 +215,7 @@ export default function OverlayUI() {
             className="flex items-center gap-2 bg-black/80 backdrop-blur-lg px-3.5 py-2 rounded-full border border-white/10 text-xs font-semibold text-white hover:bg-white/10 transition-colors shadow-xl"
           >
             {isMuted ? <VolumeX size={14} className="text-red-400" /> : <Volume2 size={14} className="text-green-400" />}
-            <span>Sound {isMuted ? "OFF" : "ON"}</span>
+            <span>Âm thanh {isMuted ? "TẮT" : "BẬT"}</span>
           </button>
         </motion.div>
       </div>
