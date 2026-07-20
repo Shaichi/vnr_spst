@@ -21,6 +21,23 @@ export function FireworksSystem({ isActive }: { isActive: boolean }) {
   const colorPalette = ['#ffd700', '#ff4444', '#ffaa00', '#ffffff', '#00ff88'];
   const lastBurstRef = useRef(0);
 
+  // Initialize hidden particles and colors
+  React.useLayoutEffect(() => {
+    if (mesh.current) {
+      // Ensure instanceColor is created
+      mesh.current.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(count * 3), 3);
+      for (let i = 0; i < count; i++) {
+        dummy.position.set(0, -100, 0);
+        dummy.scale.setScalar(0);
+        dummy.updateMatrix();
+        mesh.current.setMatrixAt(i, dummy.matrix);
+        mesh.current.setColorAt(i, new THREE.Color('#ffffff'));
+      }
+      mesh.current.instanceMatrix.needsUpdate = true;
+      if (mesh.current.instanceColor) mesh.current.instanceColor.needsUpdate = true;
+    }
+  }, [dummy, count]);
+
   useFrame((state, delta) => {
     if (!mesh.current) return;
     
@@ -29,9 +46,9 @@ export function FireworksSystem({ isActive }: { isActive: boolean }) {
       lastBurstRef.current = state.clock.elapsedTime;
       // Random position in the upper part of the main hall
       const burstCenter = new THREE.Vector3(
-        (Math.random() - 0.5) * 30, // x
-        7 + Math.random() * 4,      // y (near ceiling)
-        (Math.random() - 0.5) * 30  // z
+        (Math.random() - 0.5) * 20, // x: narrower
+        3 + Math.random() * 5,      // y: lower, within view (3 to 8)
+        (Math.random() - 0.5) * 20  // z: closer to center
       );
       const burstColor = colorPalette[Math.floor(Math.random() * colorPalette.length)];
       const threeColor = new THREE.Color(burstColor);
@@ -49,7 +66,7 @@ export function FireworksSystem({ isActive }: { isActive: boolean }) {
           p.position.copy(burstCenter);
           const theta = Math.random() * Math.PI * 2;
           const phi = Math.acos((Math.random() * 2) - 1);
-          const speed = Math.random() * 10 + 2;
+          const speed = Math.random() * 6 + 2; // slightly slower
           p.velocity.set(
             speed * Math.sin(phi) * Math.cos(theta),
             speed * Math.sin(phi) * Math.sin(theta),
@@ -57,7 +74,7 @@ export function FireworksSystem({ isActive }: { isActive: boolean }) {
           );
           p.color.copy(threeColor);
           p.life = 0;
-          p.maxLife = Math.random() * 2.0 + 1.0; // 1.0 to 3.0 seconds
+          p.maxLife = Math.random() * 2.0 + 1.5; // 1.5 to 3.5 seconds
         }
       }
     }
@@ -86,8 +103,8 @@ export function FireworksSystem({ isActive }: { isActive: boolean }) {
         // Scale down as it reaches end of life
         const lifeRatio = p.life / p.maxLife;
         // Flicker effect
-        const flicker = Math.random() > 0.8 ? 0.5 : 1.0;
-        const scale = Math.max(0, (1 - lifeRatio)) * 0.12 * flicker;
+        const flicker = Math.random() > 0.7 ? 0.4 : 1.0;
+        const scale = Math.max(0, (1 - lifeRatio)) * 0.25 * flicker; // Larger particles
         dummy.scale.setScalar(scale);
         
         dummy.updateMatrix();
