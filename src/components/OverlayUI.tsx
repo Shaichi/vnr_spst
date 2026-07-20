@@ -256,20 +256,6 @@ export default function OverlayUI() {
               </p>
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-col gap-2 pt-4 border-t border-white/10">
-              <button
-                onClick={() => {
-                  if (!isMuted) soundFx.playBrassChime();
-                }}
-                className="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-600 transition-colors py-2.5 rounded-xl font-semibold text-xs uppercase tracking-wider text-white"
-              >
-                <Play size={14} /> Thuyết Minh Âm Thanh
-              </button>
-              <button className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 transition-colors py-2.5 rounded-xl font-semibold text-xs uppercase tracking-wider text-white">
-                <BookOpen size={14} /> Tài Liệu Đính Kèm
-              </button>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
