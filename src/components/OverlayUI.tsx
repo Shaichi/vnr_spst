@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useStore } from "@/store/useStore";
 import { ROOMS, ARTIFACTS } from "@/data/museumData";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,6 +32,17 @@ export default function OverlayUI() {
 
   const allVisited = visitedArtifactIds.length === ARTIFACTS.length;
   const formattedCounter = `${String(visitedArtifactIds.length).padStart(2, "0")}/${String(ARTIFACTS.length).padStart(2, "0")}`;
+
+  const [hasTriggeredAchievement, setHasTriggeredAchievement] = useState(false);
+  useEffect(() => {
+    if (allVisited && !hasTriggeredAchievement) {
+      setHasTriggeredAchievement(true);
+      setShowBadgeModal(true);
+      if (!isMuted) {
+        soundFx.playFireworks();
+      }
+    }
+  }, [allVisited, hasTriggeredAchievement, isMuted]);
 
   const handleHintClick = (artifactId: string, roomId: string) => {
     if (!isMuted) soundFx.playWoodClick();
