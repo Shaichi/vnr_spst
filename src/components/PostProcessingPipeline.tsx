@@ -16,17 +16,18 @@ export default function PostProcessingPipeline() {
   // Dynamic focal plane: 4.6m for monuments, 2.9m for standard artifacts, 3.5m for ambient hall view
   const focusDistance = activeArtifact ? (isMonument ? 0.046 : 0.029) : 0.035;
 
+  // On mobile devices, disable all post-processing to guarantee stability and prevent GPU flickering
+  if (isMobile) return null;
+
   return (
     <EffectComposer multisampling={0}>
-      {/* High-Resolution Soft Depth of Field (Disabled on Mobile for stability) */}
-      {isMobile ? (null as any) : (
-        <DepthOfField
-          focusDistance={focusDistance}
-          focalLength={0.015}
-          bokehScale={activeArtifactId ? 1.5 : 0.5}
-          height={720}
-        />
-      )}
+      {/* High-Resolution Soft Depth of Field */}
+      <DepthOfField
+        focusDistance={focusDistance}
+        focalLength={0.015}
+        bokehScale={activeArtifactId ? 1.5 : 0.5}
+        height={720}
+      />
 
       {/* Feathered Radial Focus Mask Effect on Active Artifact */}
       <RadialFocusMask

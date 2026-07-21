@@ -875,7 +875,7 @@ export default function Experience() {
           intensity={isNightMode ? 0.35 : 1.2}
           color="#fff2db"
           castShadow
-          shadow-mapSize={[2048, 2048]}
+          shadow-mapSize={[1024, 1024]}
           shadow-camera-left={-40}
           shadow-camera-right={40}
           shadow-camera-top={40}
