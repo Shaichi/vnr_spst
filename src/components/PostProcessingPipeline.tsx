@@ -58,7 +58,7 @@ export default function PostProcessingPipeline() {
       />
 
       {/* Anti-aliasing pass for crisp edges (Desktop only to prevent Android flickering) */}
-      {!isMobile && <SMAA />}
+      {isMobile ? null : <SMAA />}
     </EffectComposer>
   );
 }
