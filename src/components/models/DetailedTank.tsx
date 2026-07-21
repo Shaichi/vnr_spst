@@ -65,40 +65,6 @@ export default function DetailedTank() {
       </mesh>
 
       <primitive object={scene} />
-
-      {/* Decals */}
-      {/* GLB faces Z, so sides are on the X axis. */}
-      {/* Y tăng lên 2.2 để nằm trên tháp pháo, X = 1.3 và -1.3 để nằm hai bên hông */}
-      
-      {/* Left Side Decal (+X side) */}
-      <group position={[1.3, 2.2, 0.2]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh position={[-0.4, 0, 0]}>
-          <circleGeometry args={[0.2, 32]} />
-          <meshStandardMaterial color="#c1121f" roughness={0.5} />
-        </mesh>
-        <mesh position={[-0.4, 0, 0.01]}>
-          <shapeGeometry args={[starShape]} />
-          <meshStandardMaterial color="#ffd700" roughness={0.5} />
-        </mesh>
-        <Text position={[0.1, 0, 0.01]} fontSize={0.4} color="#ffffff" font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf">
-          390
-        </Text>
-      </group>
-      
-      {/* Right Side Decal (-X side) */}
-      <group position={[-1.3, 2.2, 0.2]} rotation={[0, -Math.PI / 2, 0]}>
-        <mesh position={[-0.4, 0, 0]}>
-          <circleGeometry args={[0.2, 32]} />
-          <meshStandardMaterial color="#c1121f" roughness={0.5} />
-        </mesh>
-        <mesh position={[-0.4, 0, 0.01]}>
-          <shapeGeometry args={[starShape]} />
-          <meshStandardMaterial color="#ffd700" roughness={0.5} />
-        </mesh>
-        <Text position={[0.1, 0, 0.01]} fontSize={0.4} color="#ffffff" font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf">
-          390
-        </Text>
-      </group>
     </group>
   );
 }
