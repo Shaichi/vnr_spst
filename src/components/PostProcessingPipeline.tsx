@@ -4,10 +4,13 @@ import { EffectComposer, Bloom, Vignette, DepthOfField, ChromaticAberration, SMA
 import { Vector2 } from "three";
 import { useStore } from "@/store/useStore";
 import { RadialFocusMask } from "@/components/shaders/RadialFocusMaskEffect";
+import { useThree } from "@react-three/fiber";
 
 export default function PostProcessingPipeline() {
   const activeArtifactId = useStore((state) => state.activeArtifactId);
   const activeArtifact = useStore((state) => state.getActiveArtifact());
+  const size = useThree((state) => state.size);
+  const isMobile = size.width <= 768;
 
   const isMonument = activeArtifact?.type === 'monument';
   // Dynamic focal plane: 4.6m for monuments, 2.9m for standard artifacts, 3.5m for ambient hall view
@@ -15,12 +18,12 @@ export default function PostProcessingPipeline() {
 
   return (
     <EffectComposer multisampling={0}>
-      {/* High-Resolution Soft Depth of Field (Crisp focus, no text duplication) */}
+      {/* High-Resolution Soft Depth of Field (Optimized for Mobile) */}
       <DepthOfField
         focusDistance={focusDistance}
         focalLength={0.015}
         bokehScale={activeArtifactId ? 1.5 : 0.5}
-        height={1080}
+        height={isMobile ? 360 : 720}
       />
 
       {/* Feathered Radial Focus Mask Effect on Active Artifact */}
@@ -54,8 +57,8 @@ export default function PostProcessingPipeline() {
         modulationOffset={0.4}
       />
 
-      {/* Anti-aliasing pass for crisp edges */}
-      <SMAA />
+      {/* Anti-aliasing pass for crisp edges (Desktop only to prevent Android flickering) */}
+      {!isMobile && <SMAA />}
     </EffectComposer>
   );
 }

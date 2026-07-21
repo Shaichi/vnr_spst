@@ -172,14 +172,14 @@ export default function OverlayUI() {
           className="pointer-events-auto flex items-center gap-2 flex-wrap"
         >
           {/* Room Navigation Pill */}
-          <div className="flex items-center gap-1 bg-black/80 backdrop-blur-lg p-1.5 rounded-full border border-white/10 shadow-xl">
+          <div className="flex items-center gap-1 bg-black/80 backdrop-blur-lg p-1.5 rounded-2xl md:rounded-full border border-white/10 shadow-xl overflow-x-auto max-w-[calc(100vw-2rem)] md:max-w-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {ROOMS.map((room) => {
               const isActive = activeRoomId === room.id;
               return (
                 <button
                   key={room.id}
                   onClick={() => handleRoomClick(room.id)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 transition-all duration-300 ${
                     isActive
                       ? "bg-red-700 text-white shadow-md scale-105"
                       : "text-gray-400 hover:text-white hover:bg-white/10"
@@ -239,7 +239,7 @@ export default function OverlayUI() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 80 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="pointer-events-auto absolute right-6 top-24 bottom-24 w-80 md:w-96 bg-black/85 backdrop-blur-xl border border-yellow-500/30 rounded-2xl p-6 text-white shadow-2xl flex flex-col justify-between overflow-y-auto"
+            className="pointer-events-auto absolute inset-x-4 md:inset-x-auto md:right-6 top-32 md:top-24 bottom-20 md:bottom-24 md:w-96 bg-black/85 backdrop-blur-xl border border-yellow-500/30 rounded-2xl p-6 text-white shadow-2xl flex flex-col justify-between overflow-y-auto z-40"
           >
             <div>
               <div className="flex items-center justify-between mb-4">
