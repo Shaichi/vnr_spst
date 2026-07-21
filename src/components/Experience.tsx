@@ -14,7 +14,6 @@ import DetailedSandals from "./models/DetailedSandals";
 import DetailedMonument from "./models/DetailedMonument";
 import BstBacHo from "./models/BstBacHo";
 import DetailedPen from "./models/DetailedPen";
-import HatsuneMikuPlushie from "./models/HatsuneMikuPlushie";
 
 import PostProcessingPipeline from "./PostProcessingPipeline";
 import "@/components/shaders/MarbleFloorShader";
@@ -897,12 +896,6 @@ export default function Experience() {
 
         {/* Cấu trúc Bảo tàng & Hiện vật */}
         <MuseumArchitecture />
-        
-        {/* Easter Eggs - Hatsune Miku Plushies in the corners of each room */}
-        <HatsuneMikuPlushie position={[9, 0, -14]} rotation={[0, -Math.PI / 4, 0]} /> {/* Phòng 1 */}
-        <HatsuneMikuPlushie position={[-31, 0, -14]} rotation={[0, -Math.PI / 4, 0]} scaleMultiplier={12} /> {/* Phòng 2 (Khổng lồ) */}
-        <HatsuneMikuPlushie position={[31, 0, -14]} rotation={[0, -Math.PI / 4, 0]} /> {/* Phòng 3 */}
-
         {ARTIFACTS.map((artifact) => (
           <PedestalArtifact key={artifact.id} artifact={artifact} />
         ))}
