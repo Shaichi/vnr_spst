@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { CameraControls, Text, Float, Sparkles, MeshReflectorMaterial, Environment, CubicBezierLine, Image, ContactShadows, useTexture } from "@react-three/drei";
+import { CameraControls, Text, Float, Sparkles, MeshReflectorMaterial, Environment, CubicBezierLine, Image, ContactShadows, useTexture, PerformanceMonitor, BakeShadows } from "@react-three/drei";
 import { Suspense, useState, useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { useStore } from "@/store/useStore";
@@ -845,13 +845,14 @@ export default function Experience() {
   const setActiveArtifact = useStore((state) => state.setActiveArtifact);
   const isNightMode = useStore((state) => state.isNightMode);
   const visitedArtifactIds = useStore((state) => state.visitedArtifactIds);
+  const [dpr, setDpr] = useState(1.5);
 
   const bg = isNightMode ? "#050302" : "#0c0806";
 
   return (
     <Canvas
       shadows={{ type: THREE.PCFSoftShadowMap }}
-      dpr={[1, 1.5]}
+      dpr={dpr}
       camera={{ position: [0, 5.5, 28], fov: 55 }}
       gl={{
         antialias: true,
@@ -864,6 +865,8 @@ export default function Experience() {
       <fog attach="fog" args={[bg, isNightMode ? 25 : 45, isNightMode ? 100 : 120]} />
 
       <Suspense fallback={null}>
+        <PerformanceMonitor onIncline={() => setDpr(1.5)} onDecline={() => setDpr(1)} />
+        <BakeShadows />
         {/* Environment Map */}
         <Environment preset={isNightMode ? "night" : "sunset"} />
 
@@ -875,7 +878,7 @@ export default function Experience() {
           intensity={isNightMode ? 0.35 : 1.2}
           color="#fff2db"
           castShadow
-          shadow-mapSize={[1024, 1024]}
+          shadow-mapSize={typeof window !== 'undefined' && window.innerWidth > 768 ? [2048, 2048] : [1024, 1024]}
           shadow-camera-left={-40}
           shadow-camera-right={40}
           shadow-camera-top={40}
