@@ -18,13 +18,15 @@ export default function PostProcessingPipeline() {
 
   return (
     <EffectComposer multisampling={0}>
-      {/* High-Resolution Soft Depth of Field (Optimized for Mobile) */}
-      <DepthOfField
-        focusDistance={focusDistance}
-        focalLength={0.015}
-        bokehScale={activeArtifactId ? 1.5 : 0.5}
-        height={isMobile ? 360 : 720}
-      />
+      {/* High-Resolution Soft Depth of Field (Disabled on Mobile for stability) */}
+      {isMobile ? (null as any) : (
+        <DepthOfField
+          focusDistance={focusDistance}
+          focalLength={0.015}
+          bokehScale={activeArtifactId ? 1.5 : 0.5}
+          height={720}
+        />
+      )}
 
       {/* Feathered Radial Focus Mask Effect on Active Artifact */}
       <RadialFocusMask

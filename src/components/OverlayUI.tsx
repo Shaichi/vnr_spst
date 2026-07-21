@@ -69,7 +69,7 @@ export default function OverlayUI() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="pointer-events-auto flex flex-col bg-black/90 backdrop-blur-xl rounded-2xl border border-white/10 text-white shadow-2xl w-full md:w-[420px] overflow-hidden"
+          className="pointer-events-auto flex flex-col bg-black/90 md:backdrop-blur-xl rounded-2xl border border-white/10 text-white shadow-2xl w-full md:w-[420px] overflow-hidden"
         >
           {/* Header Bar inside Pill */}
           <div className="flex items-center justify-between gap-3 p-3.5 border-b border-white/10">
@@ -172,7 +172,7 @@ export default function OverlayUI() {
           className="pointer-events-auto flex items-center gap-2 flex-wrap"
         >
           {/* Room Navigation Pill */}
-          <div className="flex items-center gap-1 bg-black/80 backdrop-blur-lg p-1.5 rounded-2xl md:rounded-full border border-white/10 shadow-xl overflow-x-auto max-w-[calc(100vw-2rem)] md:max-w-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex items-center gap-1 bg-black/80 md:backdrop-blur-lg p-1.5 rounded-2xl md:rounded-full border border-white/10 shadow-xl overflow-x-auto max-w-[calc(100vw-2rem)] md:max-w-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {ROOMS.map((room) => {
               const isActive = activeRoomId === room.id;
               return (
@@ -211,7 +211,7 @@ export default function OverlayUI() {
               if (!isMuted) soundFx.playWoodClick();
               toggleNightMode();
             }}
-            className="flex items-center gap-1.5 bg-black/80 backdrop-blur-lg px-3.5 py-2 rounded-full border border-white/10 text-xs font-semibold text-white hover:bg-white/10 transition-colors shadow-xl"
+            className="flex items-center gap-1.5 bg-black/80 md:backdrop-blur-lg px-3.5 py-2 rounded-full border border-white/10 text-xs font-semibold text-white hover:bg-white/10 transition-colors shadow-xl"
             title="Chuyển đổi Chế độ Ban Ngày / Ban Đêm"
           >
             {isNightMode ? <Moon size={14} className="text-indigo-400" /> : <Sun size={14} className="text-amber-400" />}
@@ -223,7 +223,7 @@ export default function OverlayUI() {
             onClick={() => {
               toggleMute();
             }}
-            className="flex items-center gap-2 bg-black/80 backdrop-blur-lg px-3.5 py-2 rounded-full border border-white/10 text-xs font-semibold text-white hover:bg-white/10 transition-colors shadow-xl"
+            className="flex items-center gap-2 bg-black/80 md:backdrop-blur-lg px-3.5 py-2 rounded-full border border-white/10 text-xs font-semibold text-white hover:bg-white/10 transition-colors shadow-xl"
           >
             {isMuted ? <VolumeX size={14} className="text-red-400" /> : <Volume2 size={14} className="text-green-400" />}
             <span>Âm thanh {isMuted ? "TẮT" : "BẬT"}</span>
@@ -239,7 +239,7 @@ export default function OverlayUI() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 80 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="pointer-events-auto absolute inset-x-4 md:inset-x-auto md:right-6 top-32 md:top-24 bottom-20 md:bottom-24 md:w-96 bg-black/85 backdrop-blur-xl border border-yellow-500/30 rounded-2xl p-6 text-white shadow-2xl flex flex-col justify-between overflow-y-auto z-40"
+            className="pointer-events-auto absolute inset-x-4 md:inset-x-auto md:right-6 top-32 md:top-24 bottom-20 md:bottom-24 md:w-96 bg-black/85 md:backdrop-blur-xl border border-yellow-500/30 rounded-2xl p-6 text-white shadow-2xl flex flex-col justify-between overflow-y-auto z-40"
           >
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -274,7 +274,7 @@ export default function OverlayUI() {
       {/* Achievement Badge Modal when finding 15/15 Artifacts */}
       <AnimatePresence>
         {showBadgeModal && (
-          <div className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 md:backdrop-blur-md">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -319,7 +319,7 @@ export default function OverlayUI() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="pointer-events-auto flex items-center gap-3 bg-black/80 backdrop-blur-lg px-4 py-1.5 rounded-full border border-white/10 text-white text-xs shadow-xl"
+          className="pointer-events-auto flex items-center gap-3 bg-black/80 md:backdrop-blur-lg px-4 py-1.5 rounded-full border border-white/10 text-white text-xs shadow-xl"
         >
           <button
             onClick={() => {
